@@ -1,9 +1,21 @@
+/*
+ * BTrack.hh
+ *
+ *  Created on: Feb 21, 2018
+ *      Author: nbuzinsky
+ */
+
 #include <TLine.h>
 class BTrack
 {
     public:
         BTrack(const double &x1, const double &y1, const double &x2, const double &y2, const double &acqNumber);
         void Draw();
+        int GetAcquisitionNumber();
+        double GetX1();
+        double GetY1();
+        double GetX2();
+        double GetY2();
     private:
         TLine trackRidge;
         bool isSideband;
@@ -27,4 +39,29 @@ void BTrack::Draw()
 {
     trackRidge.Draw();
 
-};
+}
+
+int BTrack::GetAcquisitionNumber()
+{
+    return acquisitionNumber;
+}
+
+double BTrack::GetX1()
+{
+    return trackRidge.GetX1();
+}
+
+double BTrack::GetY1()
+{
+    return trackRidge.GetY1();
+}
+
+double BTrack::GetX2()
+{
+    return trackRidge.GetX2();
+}
+
+double BTrack::GetY2()
+{
+    return trackRidge.GetY2();
+}

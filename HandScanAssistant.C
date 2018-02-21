@@ -1,3 +1,10 @@
+/*
+ * HandScanAssistant.C
+ *
+ *  Created on: Feb 21, 2018
+ *      Author: nbuzinsky
+ */
+
 #include <TGClient.h>
 #include <TGButton.h>
 #include <TGLabel.h>
@@ -18,7 +25,8 @@ class MyMainFrame : public TGMainFrame
         virtual ~MyMainFrame();
         void WriteToYAML();
         void CloseWindow();
-        void DrawLine();
+        void CreateLine();
+        void DrawAllLines();
         void PrintAllTracks();
         void DrawNextSpectrogram();
         void DrawCurrentSpectrogram();
@@ -32,7 +40,7 @@ class MyMainFrame : public TGMainFrame
         TH2D *currentHistogram;
         TGDoubleHSlider *horizontalXSlider;
         TGDoubleHSlider *horizontalYSlider;
-        TGHProgressBar *fHProg1;
+        TGHProgressBar *progressBar;
         int acquisitionIndex;
         std::vector<std::string> histogramNames;
 
@@ -104,11 +112,11 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     //Add buttons and sliders to left window
     
     //Add progress bar, for gratification
-    fHProg1 = new TGHProgressBar(leftButtonFrame,TGProgressBar::kStandard,200);
-    fHProg1->ShowPosition();
-    leftButtonFrame->AddFrame(fHProg1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 5,5,3,4));
-    fHProg1->SetBarColor("green");
-    fHProg1->SetRange(0,histogramNames.size()-1);
+    progressBar = new TGHProgressBar(leftButtonFrame,TGProgressBar::kStandard,200);
+    progressBar->ShowPosition();
+    leftButtonFrame->AddFrame(progressBar, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 5,5,3,4));
+    progressBar->SetBarColor("green");
+    progressBar->SetRange(0,histogramNames.size()-1);
 
     TGTextButton *refreshPlotButton = new TGTextButton(leftButtonFrame,"&Refresh Plot");
     refreshPlotButton->Connect("Clicked()","MyMainFrame",this,"DrawCurrentSpectrogram()");
@@ -116,7 +124,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     refreshPlotButton->SetToolTipText("Messed up the zooming? Refresh");
 
     TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
-    createTrackButton->Connect("Clicked()","MyMainFrame",this,"DrawLine()");
+    createTrackButton->Connect("Clicked()","MyMainFrame",this,"CreateLine()");
     leftButtonFrame->AddFrame(createTrackButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
     createTrackButton->SetToolTipText("Create a new Line to fit to a track");
 
@@ -181,7 +189,18 @@ void MyMainFrame::SetupHistogramVector()
 
 }
 
-void MyMainFrame::DrawLine()
+void MyMainFrame::DrawAllLines()
+{
+    for(int i=0;i<allTracks.size();++i)
+    {
+        if(allTracks[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            allTracks[i].Draw();
+        }
+    }
+}
+
+void MyMainFrame::CreateLine()
 {
    // Draws function graphics in randomly chosen interval
    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
@@ -192,7 +211,8 @@ void MyMainFrame::DrawLine()
    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
 
    allTracks.push_back(BTrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
-   allTracks.back().Draw();
+
+   DrawAllLines();
 
    //Gets current canvas and updates after button press
    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
@@ -206,8 +226,7 @@ void MyMainFrame::DrawNextSpectrogram()
     if(acquisitionIndex < histogramNames.size() - 1) //If we are not out of range
     {
         ++acquisitionIndex;
-        
-         fHProg1->Increment(1);
+         progressBar->Increment(1);
     }
 
     DrawCurrentSpectrogram();
@@ -219,8 +238,8 @@ void MyMainFrame::DrawPreviousSpectrogram()
     {
         --acquisitionIndex;
 
-         fHProg1->Reset();
-         fHProg1->Increment(acquisitionIndex);
+         progressBar->Reset();
+         progressBar->Increment(acquisitionIndex);
     }
 
     DrawCurrentSpectrogram();
@@ -232,6 +251,8 @@ void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
     currentHistogram = (TH2D*) fileObject;
     currentHistogram->Draw("colz");
+
+    DrawAllLines();
 
     //By default, have zoomed in view of spectrogram
     currentHistogram->GetXaxis()->SetRangeUser(0,0.0025);
@@ -252,10 +273,9 @@ void MyMainFrame::DoSlider()
     currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
     currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
     currentHistogram->Draw("colz");
-    for(int i=0;i<allTracks.size();++i)
-    {
-        allTracks[i].Draw();
-    }
+
+    DrawAllLines();
+
     //Gets current canvas and updates after button press
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
     fCanvas->cd();
@@ -267,8 +287,8 @@ void MyMainFrame::PrintAllTracks()
 {
     for(int i=0;i<allTracks.size();++i)
     {
-        //printf("Line %d starts at (%e, %e)\n",i, allTracks[i].GetX1(),allTracks[i].GetY1());
-        //printf("Line %d ends at (%e, %e)\n",i, allTracks[i].GetX2(),allTracks[i].GetY2());
+        printf("Line %d starts at (%e, %e)\n",i, allTracks[i].GetX1(),allTracks[i].GetY1());
+        printf("Line %d ends at (%e, %e)\n",i, allTracks[i].GetX2(),allTracks[i].GetY2());
         printf("---------------------------\n");
     }
 }

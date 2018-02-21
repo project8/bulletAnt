@@ -1,3 +1,10 @@
+/*
+ * BCurve.hh
+ *
+ *  Created on: Feb 21, 2018
+ *      Author: nbuzinsky
+ */
+
 #include <TLine.h>
 
 class BCurve

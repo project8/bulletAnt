@@ -1,3 +1,10 @@
+/*
+ * BOther.hh
+ *
+ *  Created on: Feb 21, 2018
+ *      Author: nbuzinsky
+ */
+
 #include <string>
 
 class BOther
