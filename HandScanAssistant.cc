@@ -16,43 +16,9 @@
 #include <TApplication.h>
 
 #include "BTrack.hh"
+#include "HandScanAssistant.hh"
 
 
-class MyMainFrame : public TGMainFrame 
-{
-    public:
-        MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight);
-        virtual ~MyMainFrame();
-        void WriteToYAML();
-        void CloseWindow();
-        void CreateLine();
-        void DrawAllLines();
-        void PrintAllTracks();
-        void DrawNextSpectrogram();
-        void DrawCurrentSpectrogram();
-        void DrawPreviousSpectrogram();
-        void DoSlider();
-        void SetupHistogramVector();
-    private:
-        TRootEmbeddedCanvas *fEmbeddedCanvas;
-        std::vector<BTrack> allTracks;
-        TFile *spectrogramFile;
-        TH2D *currentHistogram;
-        TGDoubleHSlider *horizontalXSlider;
-        TGDoubleHSlider *horizontalYSlider;
-        TGHProgressBar *progressBar;
-        int acquisitionIndex;
-        std::vector<std::string> histogramNames;
-
-
-    ClassDef(MyMainFrame, 0)
-};
-
-
-void MyMainFrame::WriteToYAML()
-{
-    Printf("beep boop...");
-}
 
 MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight) : TGMainFrame(p, windowWidth, windowHeight), acquisitionIndex(0)
 {
@@ -114,45 +80,58 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     //Add progress bar, for gratification
     progressBar = new TGHProgressBar(leftButtonFrame,TGProgressBar::kStandard,200);
     progressBar->ShowPosition();
-    leftButtonFrame->AddFrame(progressBar, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 5,5,3,4));
+    leftButtonFrame->AddFrame(progressBar, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 15,15,3,4));
     progressBar->SetBarColor("green");
     progressBar->SetRange(0,histogramNames.size()-1);
+
+    TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
+    createTrackButton->Connect("Clicked()","MyMainFrame",this,"CreateLine()");
+    leftButtonFrame->AddFrame(createTrackButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 5,5,3,4));
+    createTrackButton->SetToolTipText("Create a new Line to fit to a track");
+
+    //Change current track to be a sideband?
+    TGCheckButton *sidebandButton = new TGCheckButton(leftButtonFrame, "Sideband",67);
+    sidebandButton->Connect("Clicked()","MyMainFrame",this,"SidebandBoolButton()");
+    leftButtonFrame->AddFrame(sidebandButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 1,1,4,1));
+    sidebandButton->SetState(kButtonDisabled);
+
+    //Is part of a curve
+    TGCheckButton *curvedButton = new TGCheckButton(leftButtonFrame, "Curved",67);
+    curvedButton->Connect("Clicked()","MyMainFrame",this,"CurvedBoolButton()");
+    leftButtonFrame->AddFrame(curvedButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 1,1,1,1));
+    curvedButton->SetState(kButtonDisabled);
+
+    TGTextButton *writeYAMLButton = new TGTextButton(leftButtonFrame,"&Write To YAML");
+    writeYAMLButton->Connect("Clicked()","MyMainFrame",this,"WriteToYAML()");
+    leftButtonFrame->AddFrame(writeYAMLButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    writeYAMLButton->SetToolTipText("Write all found tracks to file");
 
     TGTextButton *refreshPlotButton = new TGTextButton(leftButtonFrame,"&Refresh Plot");
     refreshPlotButton->Connect("Clicked()","MyMainFrame",this,"DrawCurrentSpectrogram()");
     leftButtonFrame->AddFrame(refreshPlotButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
     refreshPlotButton->SetToolTipText("Messed up the zooming? Refresh");
 
-    TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
-    createTrackButton->Connect("Clicked()","MyMainFrame",this,"CreateLine()");
-    leftButtonFrame->AddFrame(createTrackButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
-    createTrackButton->SetToolTipText("Create a new Line to fit to a track");
-
-    TGTextButton *printTracksButton = new TGTextButton(leftButtonFrame,"&Print All Tracks");
-    printTracksButton->Connect("Clicked()","MyMainFrame",this,"PrintAllTracks()");
-    leftButtonFrame->AddFrame(printTracksButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
-    printTracksButton->SetToolTipText("Write all found tracks to file");
 
     //Sliders
     TGLabel *xSliderLabel = new TGLabel(leftButtonFrame, "X Axis (Time)");
-    leftButtonFrame->AddFrame(xSliderLabel, new TGLayoutHints(kLHintsExpandX, 3, 2, 2, 2));
+    leftButtonFrame->AddFrame(xSliderLabel, new TGLayoutHints(kLHintsExpandX | kLHintsTop, 5, 5, 2, 2));
 
     const int horizontalXSliderID = 45;
     horizontalXSlider = new TGDoubleHSlider(leftButtonFrame,150,kDoubleScaleBoth,horizontalXSliderID);
     horizontalXSlider->Connect("PositionChanged()", "MyMainFrame", this, "DoSlider()");
     horizontalXSlider->SetRange(0,0.01);
     horizontalXSlider->SetPosition(0,0.0025);
-    leftButtonFrame->AddFrame(horizontalXSlider, new TGLayoutHints(kLHintsCenterY | kLHintsExpandX, 3, 2, 2, 2));
+    leftButtonFrame->AddFrame(horizontalXSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15,15, 2, 20));
 
     TGLabel *ySliderLabel = new TGLabel(leftButtonFrame, "Y Axis (Frequency)");
-    leftButtonFrame->AddFrame(ySliderLabel, new TGLayoutHints(kLHintsExpandX, 3, 2, 2, 2));
+    leftButtonFrame->AddFrame(ySliderLabel, new TGLayoutHints(kLHintsExpandX | kLHintsTop, 5, 5, 2, 2));
 
     const int horizontalYSliderID = 46;
     horizontalYSlider = new TGDoubleHSlider(leftButtonFrame,150,kDoubleScaleBoth,horizontalYSliderID);
     horizontalYSlider->Connect("PositionChanged()", "MyMainFrame", this, "DoSlider()");
     horizontalYSlider->SetRange(50e6,150e6);
     horizontalYSlider->SetPosition(50e6,65e6);
-    leftButtonFrame->AddFrame(horizontalYSlider, new TGLayoutHints(kLHintsCenterY | kLHintsExpandX, 3, 2, 2, 2));
+    leftButtonFrame->AddFrame(horizontalYSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
 
 
     //Finishing Touches
@@ -161,14 +140,31 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
 
     // Set a name to the main frame
     SetWindowName("Project 8 Handscanning Interface");
-    //SetWMSizeHints(350, 200, 600, 400, 0, 0);
     MapSubwindows();
-    //Resize(GetDefaultSize());
     MapWindow();
 
     //Draw first spectrogram automatically
     DrawCurrentSpectrogram();
 }
+
+void MyMainFrame::CurvedBoolButton()
+{
+
+}
+
+void MyMainFrame::SidebandBoolButton()
+{
+
+}
+
+
+void MyMainFrame::WriteToYAML()
+{
+    //WriteMetaData();
+    //WriteTracks();
+    //WriteCurves();
+}
+
 
 void MyMainFrame::SetupHistogramVector()
 {
@@ -226,10 +222,9 @@ void MyMainFrame::DrawNextSpectrogram()
     if(acquisitionIndex < histogramNames.size() - 1) //If we are not out of range
     {
         ++acquisitionIndex;
-         progressBar->Increment(1);
+        progressBar->Increment(1);
+        DrawCurrentSpectrogram();
     }
-
-    DrawCurrentSpectrogram();
 }
 
 void MyMainFrame::DrawPreviousSpectrogram()
@@ -238,11 +233,11 @@ void MyMainFrame::DrawPreviousSpectrogram()
     {
         --acquisitionIndex;
 
-         progressBar->Reset();
-         progressBar->Increment(acquisitionIndex);
+        progressBar->Reset();
+        progressBar->Increment(acquisitionIndex);
+        DrawCurrentSpectrogram();
     }
 
-    DrawCurrentSpectrogram();
 }
 
 void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
@@ -251,6 +246,9 @@ void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
     currentHistogram = (TH2D*) fileObject;
     currentHistogram->Draw("colz");
+
+    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
+    //currentHistogram->CenterTitle();
 
     DrawAllLines();
 
@@ -274,23 +272,15 @@ void MyMainFrame::DoSlider()
     currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
     currentHistogram->Draw("colz");
 
+    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
+    //currentHistogram->CenterTitle();
+
     DrawAllLines();
 
     //Gets current canvas and updates after button press
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
     fCanvas->cd();
     fCanvas->Update();
-}
-
-
-void MyMainFrame::PrintAllTracks()
-{
-    for(int i=0;i<allTracks.size();++i)
-    {
-        printf("Line %d starts at (%e, %e)\n",i, allTracks[i].GetX1(),allTracks[i].GetY1());
-        printf("Line %d ends at (%e, %e)\n",i, allTracks[i].GetX2(),allTracks[i].GetY2());
-        printf("---------------------------\n");
-    }
 }
 
 MyMainFrame::~MyMainFrame()
@@ -312,19 +302,3 @@ void HandScanAssistant(std::string inputFilename)
    new MyMainFrame(gClient->GetRoot(), inputFilename , 1440, 900);
 }
 
-//int main(int argc, char* argv[])
-//{
-//    std::string s = "spectrograms_rid000003933_000000000_to_000000013.root";
-//
-//    TApplication theApp("App", &argc, argv);
-//    if (gROOT->IsBatch()) {
-//        fprintf(stderr, "%s: cannot run in batch mode\n", argv[0]);
-//        return 1;
-//    }
-//
-//    HandScanAssistant(s);
-//
-//    theApp.Run();
-//
-//    return 0;
-//}
