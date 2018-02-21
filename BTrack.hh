@@ -12,6 +12,13 @@ class BTrack
         BTrack(const double &x1, const double &y1, const double &x2, const double &y2, const double &acqNumber);
         void Draw();
         int GetAcquisitionNumber();
+
+        void SetSidebandStatus();
+        bool GetSidebandStatus();
+
+        void SetCurvedStatus();
+        bool GetCurvedStatus();
+
         double GetX1();
         double GetY1();
         double GetX2();
@@ -65,3 +72,25 @@ double BTrack::GetY2()
 {
     return trackRidge.GetY2();
 }
+
+void BTrack::SetSidebandStatus()
+{
+    isSideband = !isSideband;
+}
+
+void BTrack::SetCurvedStatus()
+{
+    isCurved = !isCurved;
+}
+
+bool BTrack::GetSidebandStatus()
+{
+    return isSideband;
+}
+
+bool BTrack::GetCurvedStatus()
+{
+    return isCurved;
+}
+
+

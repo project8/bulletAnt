@@ -90,13 +90,13 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     createTrackButton->SetToolTipText("Create a new Line to fit to a track");
 
     //Change current track to be a sideband?
-    TGCheckButton *sidebandButton = new TGCheckButton(leftButtonFrame, "Sideband",67);
+    sidebandButton = new TGCheckButton(leftButtonFrame, "Sideband",67);
     sidebandButton->Connect("Clicked()","MyMainFrame",this,"SidebandBoolButton()");
     leftButtonFrame->AddFrame(sidebandButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 1,1,4,1));
     sidebandButton->SetState(kButtonDisabled);
 
     //Is part of a curve
-    TGCheckButton *curvedButton = new TGCheckButton(leftButtonFrame, "Curved",67);
+    curvedButton = new TGCheckButton(leftButtonFrame, "Curved",67);
     curvedButton->Connect("Clicked()","MyMainFrame",this,"CurvedBoolButton()");
     leftButtonFrame->AddFrame(curvedButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 1,1,1,1));
     curvedButton->SetState(kButtonDisabled);
@@ -149,11 +149,30 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
 
 void MyMainFrame::CurvedBoolButton()
 {
+    if(allTracks.empty()) return; //Do not want segfaults ... do nothing
+    for(int i=allTracks.size() - 1; i >=0; --i)
+    {
+        if(allTracks[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            allTracks[i].SetCurvedStatus();
+            break;
+        }
+    }
 
 }
 
 void MyMainFrame::SidebandBoolButton()
 {
+    if(allTracks.empty()) return; //Do not want segfaults ... do nothing
+    for(int i=allTracks.size() - 1; i >=0; --i)
+    {
+        if(allTracks[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            allTracks[i].SetSidebandStatus();
+            break;
+        }
+    }
+
 
 }
 
@@ -198,22 +217,25 @@ void MyMainFrame::DrawAllLines()
 
 void MyMainFrame::CreateLine()
 {
-   // Draws function graphics in randomly chosen interval
-   double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
-   double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
-   double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
-   double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
-   double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
-   double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
+    // Draws function graphics in randomly chosen interval
+    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
+    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
 
-   allTracks.push_back(BTrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+    allTracks.push_back(BTrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
 
-   DrawAllLines();
+    DrawAllLines();
 
-   //Gets current canvas and updates after button press
-   TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-   fCanvas->cd();
-   fCanvas->Update();
+    sidebandButton->SetState(kButtonUp);
+    curvedButton->SetState(kButtonUp);
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
 }
 
 
@@ -224,6 +246,7 @@ void MyMainFrame::DrawNextSpectrogram()
         ++acquisitionIndex;
         progressBar->Increment(1);
         DrawCurrentSpectrogram();
+        SetButtonStatus();
     }
 }
 
@@ -236,8 +259,28 @@ void MyMainFrame::DrawPreviousSpectrogram()
         progressBar->Reset();
         progressBar->Increment(acquisitionIndex);
         DrawCurrentSpectrogram();
+        SetButtonStatus();
     }
 
+}
+
+void MyMainFrame::SetButtonStatus()
+{
+    sidebandButton->SetState(kButtonUp);
+    curvedButton->SetState(kButtonUp);
+
+    sidebandButton->SetState(kButtonDisabled);
+    curvedButton->SetState(kButtonDisabled);
+
+    for(int i=allTracks.size() - 1; i >=0; --i)
+    {
+        if(allTracks[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            (allTracks[i].GetSidebandStatus()) ? sidebandButton->SetState(kButtonDown) : sidebandButton->SetState(kButtonUp);
+            (allTracks[i].GetCurvedStatus()) ? curvedButton->SetState(kButtonDown) : curvedButton->SetState(kButtonUp);
+            break;
+        }
+    }
 }
 
 void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex

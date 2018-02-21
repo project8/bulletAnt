@@ -15,6 +15,7 @@ class MyMainFrame : public TGMainFrame
         void SetupHistogramVector();
         void CurvedBoolButton();
         void SidebandBoolButton();
+        void SetButtonStatus();
     private:
         TRootEmbeddedCanvas *fEmbeddedCanvas;
         std::vector<BTrack> allTracks;
@@ -23,6 +24,8 @@ class MyMainFrame : public TGMainFrame
         TGDoubleHSlider *horizontalXSlider;
         TGDoubleHSlider *horizontalYSlider;
         TGHProgressBar *progressBar;
+        TGCheckButton *sidebandButton;
+        TGCheckButton *curvedButton;
         int acquisitionIndex;
         std::vector<std::string> histogramNames;
 
