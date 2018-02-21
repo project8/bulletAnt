@@ -6,6 +6,9 @@
 #include <TGSplitter.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TH2D.h>
+#include <TApplication.h>
+
+#include "BTrack.hh"
 
 
 class MyMainFrame : public TGMainFrame 
@@ -21,18 +24,18 @@ class MyMainFrame : public TGMainFrame
         void DrawCurrentSpectrogram();
         void DrawPreviousSpectrogram();
         void DoSlider();
+        void SetupHistogramVector();
     private:
         TRootEmbeddedCanvas *fEmbeddedCanvas;
-        std::vector<TLine> allLines;
+        std::vector<BTrack> allTracks;
         TFile *spectrogramFile;
-        TList * histogramList;
-        TObject *fileObject; //generic TObject to retrieve the histograms from the root file
         TH2D *currentHistogram;
-        int histogramListIndex;
         TGDoubleHSlider *horizontalXSlider;
         TGDoubleHSlider *horizontalYSlider;
+        TGHProgressBar *fHProg1;
+        int acquisitionIndex;
+        std::vector<std::string> histogramNames;
 
-    std::string currentHistogramName, previousHistogramName;
 
     ClassDef(MyMainFrame, 0)
 };
@@ -43,73 +46,86 @@ void MyMainFrame::WriteToYAML()
     Printf("beep boop...");
 }
 
-MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight) : TGMainFrame(p, windowWidth, windowHeight), histogramListIndex(0)
+MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight) : TGMainFrame(p, windowWidth, windowHeight), acquisitionIndex(0)
 {
 
     spectrogramFile = new TFile(spectrogramFilename.c_str());
-    histogramList = spectrogramFile->GetListOfKeys();
+    SetupHistogramVector();
 
-   // Create pair of vertical frames, in global frame object
-   TGHorizontalFrame *fHorizontalFrame = new TGHorizontalFrame(this, windowWidth, windowHeight);
+    // Create pair of vertical frames, in global frame object
+    TGHorizontalFrame *fHorizontalFrame = new TGHorizontalFrame(this, windowWidth, windowHeight);
 
-   const int buttonFrameWidth = 250;
-   TGVerticalFrame *fVerticalFrame1 = new TGVerticalFrame(fHorizontalFrame, buttonFrameWidth, windowHeight, kFixedWidth);
-   TGVerticalFrame *fVerticalFrame2 = new TGVerticalFrame(fHorizontalFrame, windowWidth, windowHeight);
+    const int buttonFrameWidth = 250;
+    TGVerticalFrame *fVerticalFrame1 = new TGVerticalFrame(fHorizontalFrame, buttonFrameWidth, windowHeight, kFixedWidth);
+    TGVerticalFrame *fVerticalFrame2 = new TGVerticalFrame(fHorizontalFrame, windowWidth, windowHeight);
 
-   TGCompositeFrame *leftButtonFrame = new TGCompositeFrame(fVerticalFrame1, 400, windowHeight, kSunkenFrame); //Numbers dont matter here, fits full frame
-   TGCompositeFrame *rightCanvasFrame = new TGCompositeFrame(fVerticalFrame2, 400, windowHeight, kSunkenFrame);
+    TGCompositeFrame *leftButtonFrame = new TGCompositeFrame(fVerticalFrame1, 400, windowHeight, kSunkenFrame); //Numbers dont matter here, fits full frame
+    TGCompositeFrame *rightCanvasFrame = new TGCompositeFrame(fVerticalFrame2, 400, windowHeight, kSunkenFrame);
 
-   fVerticalFrame1->AddFrame(leftButtonFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 5, 10));
-   fVerticalFrame2->AddFrame(rightCanvasFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 5, 10));
+    fVerticalFrame1->AddFrame(leftButtonFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 5, 10));
+    fVerticalFrame2->AddFrame(rightCanvasFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 5, 10));
 
-   fHorizontalFrame->AddFrame(fVerticalFrame1, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
+    fHorizontalFrame->AddFrame(fVerticalFrame1, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
-   // Create canvas widget
-   fEmbeddedCanvas = new TRootEmbeddedCanvas("EmbeddedCanvas",rightCanvasFrame,windowWidth,windowHeight);
-   int canvasPadding[4] = {10,10,10,1}; // left, right, top, bottom, in pixels
-   rightCanvasFrame->AddFrame(fEmbeddedCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, canvasPadding[0], canvasPadding[1], canvasPadding[2], canvasPadding[3]));
-
-
-   //Create Splitter
-   TGVSplitter *splitter = new TGVSplitter(fHorizontalFrame,2,2);
-   splitter->SetFrame(fVerticalFrame1, kTRUE);
-   fHorizontalFrame->AddFrame(splitter, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
-
-   fHorizontalFrame->AddFrame(fVerticalFrame2, new TGLayoutHints(kLHintsRight | kLHintsExpandX | kLHintsExpandY));
-   AddFrame(fHorizontalFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandX | kLHintsExpandY));
-
-   ///// Lower Button Frame
-   TGVerticalFrame *vframe = new TGVerticalFrame(this, 400, 400);
-   TGCompositeFrame *cframe2 = new TGCompositeFrame(vframe, 200, 200, kHorizontalFrame | kFixedWidth );
-
-   TGTextButton *previousSpectrogramButton = new TGTextButton(cframe2, "&Previous Spectrogram");
-   cframe2->AddFrame(previousSpectrogramButton, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
-   previousSpectrogramButton->Connect("Clicked()", "MyMainFrame", this, "DrawPreviousSpectrogram()");
-   previousSpectrogramButton->SetToolTipText("Click on the button to save the application as C++ macro");
-
-   TGTextButton *nextSpectrogramButton = new TGTextButton(cframe2, "&Next Spectrogram");
-   cframe2->AddFrame(nextSpectrogramButton, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
-   nextSpectrogramButton->Connect("Clicked()", "MyMainFrame", this, "DrawNextSpectrogram()");
-   nextSpectrogramButton->SetToolTipText("Click on the button to save the application as C++ macro");
-
-   TGTextButton *exit = new TGTextButton(cframe2, "&Exit ","gApplication->Terminate(0)");
-   cframe2->AddFrame(exit, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
-   vframe->AddFrame(cframe2, new TGLayoutHints(kLHintsExpandX, 2, 2, 5, 1));
-   AddFrame(vframe, new TGLayoutHints(kLHintsExpandX, 2, 2, 5, 1));
+    // Create canvas widget
+    fEmbeddedCanvas = new TRootEmbeddedCanvas("EmbeddedCanvas",rightCanvasFrame,windowWidth,windowHeight);
+    int canvasPadding[4] = {10,10,10,1}; // left, right, top, bottom, in pixels
+    rightCanvasFrame->AddFrame(fEmbeddedCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, canvasPadding[0], canvasPadding[1], canvasPadding[2], canvasPadding[3]));
 
 
-   //Add buttons and sliders to left window
-   TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
-   createTrackButton->Connect("Clicked()","MyMainFrame",this,"DrawLine()");
-   leftButtonFrame->AddFrame(createTrackButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
-   createTrackButton->SetToolTipText("Create a new Line to fit to a track");
+    //Create Splitter
+    TGVSplitter *splitter = new TGVSplitter(fHorizontalFrame,2,2);
+    splitter->SetFrame(fVerticalFrame1, kTRUE);
+    fHorizontalFrame->AddFrame(splitter, new TGLayoutHints(kLHintsLeft | kLHintsExpandY));
 
-   TGTextButton *printTracksButton = new TGTextButton(leftButtonFrame,"&Print All Tracks");
-   printTracksButton->Connect("Clicked()","MyMainFrame",this,"PrintAllTracks()");
-   leftButtonFrame->AddFrame(printTracksButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
-   printTracksButton->SetToolTipText("Write all found tracks to file");
+    fHorizontalFrame->AddFrame(fVerticalFrame2, new TGLayoutHints(kLHintsRight | kLHintsExpandX | kLHintsExpandY));
+    AddFrame(fHorizontalFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandX | kLHintsExpandY));
 
-   //Sliders
+    ///// Lower Button Frame
+    TGVerticalFrame *vframe = new TGVerticalFrame(this, 400, 400);
+    TGCompositeFrame *cframe2 = new TGCompositeFrame(vframe, 200, 200, kHorizontalFrame | kFixedWidth );
+
+    TGTextButton *previousSpectrogramButton = new TGTextButton(cframe2, "&Previous Spectrogram");
+    cframe2->AddFrame(previousSpectrogramButton, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
+    previousSpectrogramButton->Connect("Clicked()", "MyMainFrame", this, "DrawPreviousSpectrogram()");
+    previousSpectrogramButton->SetToolTipText("Click on the button to save the application as C++ macro");
+
+    TGTextButton *nextSpectrogramButton = new TGTextButton(cframe2, "&Next Spectrogram");
+    cframe2->AddFrame(nextSpectrogramButton, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 3, 2, 2, 2));
+    nextSpectrogramButton->Connect("Clicked()", "MyMainFrame", this, "DrawNextSpectrogram()");
+    nextSpectrogramButton->SetToolTipText("Click on the button to save the application as C++ macro");
+
+    TGTextButton *exit = new TGTextButton(cframe2, "&Exit ","gApplication->Terminate(0)");
+    cframe2->AddFrame(exit, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
+    vframe->AddFrame(cframe2, new TGLayoutHints(kLHintsExpandX, 2, 2, 5, 1));
+    AddFrame(vframe, new TGLayoutHints(kLHintsExpandX, 2, 2, 5, 1));
+
+
+    //Add buttons and sliders to left window
+    
+    //Add progress bar, for gratification
+    fHProg1 = new TGHProgressBar(leftButtonFrame,TGProgressBar::kStandard,200);
+    fHProg1->ShowPosition();
+    leftButtonFrame->AddFrame(fHProg1, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 5,5,3,4));
+    fHProg1->SetBarColor("green");
+    fHProg1->SetRange(0,histogramNames.size()-1);
+
+    TGTextButton *refreshPlotButton = new TGTextButton(leftButtonFrame,"&Refresh Plot");
+    refreshPlotButton->Connect("Clicked()","MyMainFrame",this,"DrawCurrentSpectrogram()");
+    leftButtonFrame->AddFrame(refreshPlotButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    refreshPlotButton->SetToolTipText("Messed up the zooming? Refresh");
+
+    TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
+    createTrackButton->Connect("Clicked()","MyMainFrame",this,"DrawLine()");
+    leftButtonFrame->AddFrame(createTrackButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    createTrackButton->SetToolTipText("Create a new Line to fit to a track");
+
+    TGTextButton *printTracksButton = new TGTextButton(leftButtonFrame,"&Print All Tracks");
+    printTracksButton->Connect("Clicked()","MyMainFrame",this,"PrintAllTracks()");
+    leftButtonFrame->AddFrame(printTracksButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    printTracksButton->SetToolTipText("Write all found tracks to file");
+
+    //Sliders
     TGLabel *xSliderLabel = new TGLabel(leftButtonFrame, "X Axis (Time)");
     leftButtonFrame->AddFrame(xSliderLabel, new TGLayoutHints(kLHintsExpandX, 3, 2, 2, 2));
 
@@ -130,6 +146,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     horizontalYSlider->SetPosition(50e6,65e6);
     leftButtonFrame->AddFrame(horizontalYSlider, new TGLayoutHints(kLHintsCenterY | kLHintsExpandX, 3, 2, 2, 2));
 
+
     //Finishing Touches
     // What to clean up in destructor
     SetCleanup(kDeepCleanup);
@@ -145,6 +162,25 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     DrawCurrentSpectrogram();
 }
 
+void MyMainFrame::SetupHistogramVector()
+{
+    std::string currentHistogramName;
+    TList * histogramList = spectrogramFile->GetListOfKeys();
+
+    int j = 0;
+    while(histogramList->At(j))
+    {
+        currentHistogramName = histogramList->At(j)->GetName();
+        if(histogramNames.empty() || histogramNames.back() != currentHistogramName)
+        {
+            histogramNames.push_back(currentHistogramName);
+        }
+
+        ++j;
+    }
+
+}
+
 void MyMainFrame::DrawLine()
 {
    // Draws function graphics in randomly chosen interval
@@ -155,10 +191,8 @@ void MyMainFrame::DrawLine()
    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
 
-   allLines.push_back(TLine(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1] ));
-   allLines.back().SetLineWidth(1);
-   allLines.back().SetLineColor(kRed);
-   allLines.back().Draw();
+   allTracks.push_back(BTrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+   allTracks.back().Draw();
 
    //Gets current canvas and updates after button press
    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
@@ -169,23 +203,11 @@ void MyMainFrame::DrawLine()
 
 void MyMainFrame::DrawNextSpectrogram()
 {
-    ++histogramListIndex;
-
-    for(int i=0;i<3;++i)
+    if(acquisitionIndex < histogramNames.size() - 1) //If we are not out of range
     {
-        if(!histogramList->At(histogramListIndex))
-        {
-            //Warn user they are out of index, can just write and exit if done
-            histogramListIndex-=2; //Assumes that we always have this x2 repitition in the filenames
-            break;
-        }
-
-        previousHistogramName = currentHistogramName;
-        currentHistogramName = histogramList->At(histogramListIndex)->GetName();
-
-        if(previousHistogramName != currentHistogramName) break;
-
-        ++histogramListIndex;
+        ++acquisitionIndex;
+        
+         fHProg1->Increment(1);
     }
 
     DrawCurrentSpectrogram();
@@ -193,32 +215,21 @@ void MyMainFrame::DrawNextSpectrogram()
 
 void MyMainFrame::DrawPreviousSpectrogram()
 {
-    --histogramListIndex;
-
-    for(int i=0;i<3;++i)
+    if(acquisitionIndex!=0)
     {
-        if(histogramListIndex < 0)
-        {
-            //Warn user they are out of index, you cant get away that easy
-            ++histogramListIndex;
-            break;
-        }
+        --acquisitionIndex;
 
-        previousHistogramName = currentHistogramName;
-        currentHistogramName = histogramList->At(histogramListIndex)->GetName();
-
-        if(previousHistogramName == currentHistogramName) break;
-
-        --histogramListIndex;
+         fHProg1->Reset();
+         fHProg1->Increment(acquisitionIndex);
     }
 
     DrawCurrentSpectrogram();
 }
 
-void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the histogramListIndex
+void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
 {
-    currentHistogramName = histogramList->At(histogramListIndex)->GetName();
-    fileObject = spectrogramFile->Get(currentHistogramName.c_str());
+    std::string currentHistogramName = histogramNames[acquisitionIndex];
+    TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
     currentHistogram = (TH2D*) fileObject;
     currentHistogram->Draw("colz");
 
@@ -241,9 +252,9 @@ void MyMainFrame::DoSlider()
     currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
     currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
     currentHistogram->Draw("colz");
-    for(int i=0;i<allLines.size();++i)
+    for(int i=0;i<allTracks.size();++i)
     {
-    allLines[i].Draw();
+        allTracks[i].Draw();
     }
     //Gets current canvas and updates after button press
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
@@ -254,10 +265,10 @@ void MyMainFrame::DoSlider()
 
 void MyMainFrame::PrintAllTracks()
 {
-    for(int i=0;i<allLines.size();++i)
+    for(int i=0;i<allTracks.size();++i)
     {
-        printf("Line %d starts at (%e, %e)\n",i, allLines[i].GetX1(),allLines[i].GetY1());
-        printf("Line %d ends at (%e, %e)\n",i, allLines[i].GetX2(),allLines[i].GetY2());
+        //printf("Line %d starts at (%e, %e)\n",i, allTracks[i].GetX1(),allTracks[i].GetY1());
+        //printf("Line %d ends at (%e, %e)\n",i, allTracks[i].GetX2(),allTracks[i].GetY2());
         printf("---------------------------\n");
     }
 }
@@ -280,3 +291,20 @@ void HandScanAssistant(std::string inputFilename)
    gStyle->SetOptStat(0);
    new MyMainFrame(gClient->GetRoot(), inputFilename , 1440, 900);
 }
+
+//int main(int argc, char* argv[])
+//{
+//    std::string s = "spectrograms_rid000003933_000000000_to_000000013.root";
+//
+//    TApplication theApp("App", &argc, argv);
+//    if (gROOT->IsBatch()) {
+//        fprintf(stderr, "%s: cannot run in batch mode\n", argv[0]);
+//        return 1;
+//    }
+//
+//    HandScanAssistant(s);
+//
+//    theApp.Run();
+//
+//    return 0;
+//}
