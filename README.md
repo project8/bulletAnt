@@ -20,7 +20,6 @@ Instructions for Use
   ```
   root [0]  .L HandScanAssistant.C
   root [1]  HandScanAssistant("/path/to/spectrograms_rid00000XXXX_000000YYY_to_000000ZZZ.root")
-  
   ```
  Where the argument is the path to the root file you downloaded from DIRAC, on your local file system, in quotations.
 
