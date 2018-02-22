@@ -6,7 +6,9 @@ class MyMainFrame : public TGMainFrame
         void WriteToYAML();
         void CloseWindow();
         void CreateLine();
-        void DrawAllLines();
+        void CreateCurve();
+        void CreateOther();
+        void DrawAll();
         void PrintAllTracks();
         void DrawNextSpectrogram();
         void DrawCurrentSpectrogram();
@@ -19,6 +21,8 @@ class MyMainFrame : public TGMainFrame
     private:
         TRootEmbeddedCanvas *fEmbeddedCanvas;
         std::vector<BTrack> allTracks;
+        std::vector<BCurve> allCurves;
+        std::vector<BOther> allOthers;
         TFile *spectrogramFile;
         TH2D *currentHistogram;
         TGDoubleHSlider *horizontalXSlider;

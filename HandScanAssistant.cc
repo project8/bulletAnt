@@ -16,6 +16,8 @@
 #include <TApplication.h>
 
 #include "BTrack.hh"
+#include "BCurve.hh"
+#include "BOther.hh"
 #include "HandScanAssistant.hh"
 
 
@@ -100,6 +102,17 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     curvedButton->Connect("Clicked()","MyMainFrame",this,"CurvedBoolButton()");
     leftButtonFrame->AddFrame(curvedButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 1,1,1,1));
     curvedButton->SetState(kButtonDisabled);
+
+    TGTextButton *createCurveButton = new TGTextButton(leftButtonFrame,"&Create Curve");
+    createCurveButton->Connect("Clicked()","MyMainFrame",this,"CreateCurve()");
+    leftButtonFrame->AddFrame(createCurveButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    createCurveButton->SetToolTipText("Create a line specifically for curved track");
+
+    TGTextButton *createOtherButton = new TGTextButton(leftButtonFrame,"&Other Feature");
+    createOtherButton->Connect("Clicked()","MyMainFrame",this,"CreateOther()");
+    leftButtonFrame->AddFrame(createOtherButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    createOtherButton->SetToolTipText("Create a line specifically for curved track");
+
 
     TGTextButton *writeYAMLButton = new TGTextButton(leftButtonFrame,"&Write To YAML");
     writeYAMLButton->Connect("Clicked()","MyMainFrame",this,"WriteToYAML()");
@@ -204,7 +217,7 @@ void MyMainFrame::SetupHistogramVector()
 
 }
 
-void MyMainFrame::DrawAllLines()
+void MyMainFrame::DrawAll()
 {
     for(int i=0;i<allTracks.size();++i)
     {
@@ -213,7 +226,65 @@ void MyMainFrame::DrawAllLines()
             allTracks[i].Draw();
         }
     }
+
+    for(int i=0;i<allCurves.size();++i)
+    {
+        if(allCurves[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            allCurves[i].Draw();
+        }
+    }
+
+    for(int i=0;i<allOthers.size();++i)
+    {
+        if(allOthers[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            allOthers[i].Draw();
+        }
+    }
 }
+
+void MyMainFrame::CreateOther()
+{
+    // Draws function graphics in randomly chosen interval
+    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+    double xLinePosition =  xAxisInterval[0] + 0.5 * xAxisLength;
+    double yLinePosition =  yAxisInterval[0] + 0.5 * yAxisLength;
+
+    allOthers.push_back(BOther(xLinePosition, yLinePosition,acquisitionIndex ));
+
+    DrawAll();
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
+}
+
+
+void MyMainFrame::CreateCurve()
+{
+    // Draws function graphics in randomly chosen interval
+    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
+    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
+
+    allCurves.push_back(BCurve(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+
+    DrawAll();
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
+}
+
 
 void MyMainFrame::CreateLine()
 {
@@ -227,7 +298,7 @@ void MyMainFrame::CreateLine()
 
     allTracks.push_back(BTrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
 
-    DrawAllLines();
+    DrawAll();
 
     sidebandButton->SetState(kButtonUp);
     curvedButton->SetState(kButtonUp);
@@ -293,7 +364,7 @@ void MyMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
     //currentHistogram->CenterTitle();
 
-    DrawAllLines();
+    DrawAll();
 
     //By default, have zoomed in view of spectrogram
     currentHistogram->GetXaxis()->SetRangeUser(0,0.0025);
@@ -318,7 +389,7 @@ void MyMainFrame::DoSlider()
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
     //currentHistogram->CenterTitle();
 
-    DrawAllLines();
+    DrawAll();
 
     //Gets current canvas and updates after button press
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();

@@ -11,11 +11,43 @@ class BOther
 {
 
     public:
-        //BOther();
-        void SetComment();
+        BOther(const double &x, const double &y,const int &acqNumber);
+        //void SetComment();
+        void Draw();
+        int GetAcquisitionNumber();
+        double GetTime();
+        double GetFrequency();
 
     private:
-        TPoint featurePosition;
+        TMarker featurePosition;
         std::string userComment;
         int acquisitionNumber;
 };
+
+BOther::BOther(const double &x, const double &y,const int &acqNumber): 
+    featurePosition(TMarker(x,y,8)), 
+    acquisitionNumber(acqNumber)
+{
+    featurePosition.SetMarkerColor(kWhite);
+
+}
+
+void BOther::Draw()
+{
+    featurePosition.Draw();
+}
+
+int BOther::GetAcquisitionNumber()
+{
+    return acquisitionNumber;
+}
+
+double BOther::GetTime()
+{
+    return featurePosition.GetX();
+}
+
+double BOther::GetFrequency()
+{
+    return featurePosition.GetY();
+}
