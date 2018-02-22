@@ -151,7 +151,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
     SetCleanup(kDeepCleanup);
 
     // Set a name to the main frame
-    SetWindowName("Project 8 Handscanning Interface");
+    SetWindowName("bulletAnt- Project 8 Handscanning Interface");
     MapSubwindows();
     MapWindow();
 

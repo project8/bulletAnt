@@ -35,3 +35,5 @@ install/*
 #other common data files
 *.root
 *.yaml
+
+*.swp
