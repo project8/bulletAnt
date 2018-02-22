@@ -152,6 +152,7 @@ MyMainFrame::MyMainFrame(const TGWindow *p, std::string spectrogramFilename, UIn
 
     // Set a name to the main frame
     SetWindowName("bulletAnt- Project 8 Handscanning Interface");
+    SetWMSizeHints(600, 400, windowWidth, windowHeight, 0, 0);
     MapSubwindows();
     MapWindow();
 
@@ -541,6 +542,6 @@ void HandScanAssistant(std::string inputFilename)
 {
    // Popup the GUI...
    gStyle->SetOptStat(0);
-   new MyMainFrame(gClient->GetRoot(), inputFilename , 1440, 900);
+   new MyMainFrame(gClient->GetRoot(), inputFilename , 1600, 1200);
 }
 
