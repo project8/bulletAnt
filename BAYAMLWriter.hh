@@ -73,10 +73,10 @@ void BAYAMLWriter::WriteMetadata()
     std::ofstream outputFileStream;
     outputFileStream.open(outputFilename, std::ofstream::trunc);
     outputFileStream << "metadata:" <<std::endl;
-    outputFileStream << "\tscanner: \""<<scannerName<<"\""<<std::endl;
-    outputFileStream << "\tdate: \""<<todaysDate<<"\""<<std::endl;
-    outputFileStream << "\trun_id: \""<<runID<<"\""<<std::endl;
-    outputFileStream << "\tspectrogram_file: \""<<spectrogramFile<<"\""<<std::endl;
+    outputFileStream << "    scanner: \""<<scannerName<<"\""<<std::endl;
+    outputFileStream << "    date: \""<<todaysDate<<"\""<<std::endl;
+    outputFileStream << "    run_id: \""<<runID<<"\""<<std::endl;
+    outputFileStream << "    spectrogram_file: \""<<spectrogramFile<<"\""<<std::endl;
 
     outputFileStream.close();
 
@@ -92,15 +92,15 @@ void BAYAMLWriter::WriteTracks()
         
         for(int i=0;i<allTracks.size();++i)
         {
-            outputFileStream << "\t- start_f: "<<allTracks[i].GetStartFrequency() <<std::endl;
-            outputFileStream << "\t  start_t: "<<allTracks[i].GetStartTime() <<std::endl;
-            outputFileStream << "\t  end_f: "<<allTracks[i].GetEndFrequency() <<std::endl;
-            outputFileStream << "\t  end_t: "<<allTracks[i].GetEndTime() <<std::endl;
-            outputFileStream << "\t  acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl;
+            outputFileStream << "    - start_f: "<<allTracks[i].GetStartFrequency() <<std::endl;
+            outputFileStream << "      start_t: "<<allTracks[i].GetStartTime() <<std::endl;
+            outputFileStream << "      end_f: "<<allTracks[i].GetEndFrequency() <<std::endl;
+            outputFileStream << "      end_t: "<<allTracks[i].GetEndTime() <<std::endl;
+            outputFileStream << "      acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl;
             if(allTracks[i].GetSidebandStatus())
-                outputFileStream << "\t  sideband: "<< std::boolalpha <<allTracks[i].GetSidebandStatus() <<std::endl; //Print as true/ false, not 1 or 0
+                outputFileStream << "      sideband: "<< std::boolalpha <<allTracks[i].GetSidebandStatus() <<std::endl; //Print as true/ false, not 1 or 0
             if(allTracks[i].GetCurvedStatus())
-                outputFileStream << "\t  curved: "<< std::boolalpha << allTracks[i].GetCurvedStatus() <<std::endl;  
+                outputFileStream << "      curved: "<< std::boolalpha << allTracks[i].GetCurvedStatus() <<std::endl;  
         }
         outputFileStream.close();
     }
@@ -118,10 +118,10 @@ void BAYAMLWriter::WriteCurves()
         
         for(int i=0;i<allCurves.size();++i)
         {
-            outputFileStream << "\t- time: "<<allCurves[i].GetTime() <<std::endl;
-            outputFileStream << "\t  start_f: "<<allCurves[i].GetStartFrequency() <<std::endl;
-            outputFileStream << "\t  end_f: "<<allCurves[i].GetEndFrequency() <<std::endl;
-            outputFileStream << "\t  acquisition_number: "<<allCurves[i].GetAcquisitionNumber() <<std::endl;
+            outputFileStream << "    - time: "<<allCurves[i].GetTime() <<std::endl;
+            outputFileStream << "      start_f: "<<allCurves[i].GetStartFrequency() <<std::endl;
+            outputFileStream << "      end_f: "<<allCurves[i].GetEndFrequency() <<std::endl;
+            outputFileStream << "      acquisition_number: "<<allCurves[i].GetAcquisitionNumber() <<std::endl;
         }
         outputFileStream.close();
     }
@@ -138,10 +138,10 @@ void BAYAMLWriter::WriteOthers()
         
         for(int i=0;i<allOthers.size();++i)
         {
-            outputFileStream << "\t- time: "<<allOthers[i].GetTime() <<std::endl;
-            outputFileStream << "\t  frequency: "<<allOthers[i].GetFrequency() <<std::endl;
-            outputFileStream << "\t  comment: "<<allOthers[i].GetComment() <<std::endl;
-            outputFileStream << "\t  acquisition_number: "<<allOthers[i].GetAcquisitionNumber() <<std::endl;
+            outputFileStream << "    - time: "<<allOthers[i].GetTime() <<std::endl;
+            outputFileStream << "      frequency: "<<allOthers[i].GetFrequency() <<std::endl;
+            outputFileStream << "      comment: "<<allOthers[i].GetComment() <<std::endl;
+            outputFileStream << "      acquisition_number: "<<allOthers[i].GetAcquisitionNumber() <<std::endl;
         }
         outputFileStream.close();
     }

@@ -11,8 +11,7 @@ class BAOther
 {
 
     public:
-        BAOther(const double &x, const double &y,const int &acqNumber);
-        void SetComment(const std::string &sInput);
+        BAOther(const double &x, const double &y,const int &acqNumber, const std::string &sInput);
         void Draw();
         int GetAcquisitionNumber();
         double GetTime();
@@ -25,17 +24,13 @@ class BAOther
         int acquisitionNumber;
 };
 
-BAOther::BAOther(const double &x, const double &y,const int &acqNumber): 
+BAOther::BAOther(const double &x, const double &y,const int &acqNumber, const std::string &sInput): 
     featurePosition(TMarker(x,y,8)), 
-    acquisitionNumber(acqNumber)
+    acquisitionNumber(acqNumber),
+    userComment(sInput)
 {
     featurePosition.SetMarkerColor(kWhite);
 
-}
-
-void BAOther::SetComment(const std::string &sInput)
-{
-    userComment = sInput;
 }
 
 std::string BAOther::GetComment()

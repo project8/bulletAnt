@@ -200,6 +200,7 @@ void MyMainFrame::OkayButton()
 
 void MyMainFrame::CancelButton()
 {
+    userInput = "";
     fDialog->CloseWindow();
 }
 
@@ -360,22 +361,28 @@ void MyMainFrame::DrawAll()
 
 void MyMainFrame::CreateOther()
 {
-    // Draws function graphics in randomly chosen interval
-    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
-    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
-    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
-    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
-    double xLinePosition =  xAxisInterval[0] + 0.5 * xAxisLength;
-    double yLinePosition =  yAxisInterval[0] + 0.5 * yAxisLength;
+    const std::string userPrompt = "Please enter a brief description of this feature";
+    CreateDialog(userPrompt);
+    std::string userDescription = GetUserInput();
+    if(!userDescription.empty())
+    {
+        // Draws function graphics in randomly chosen interval
+        double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+        double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+        double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+        double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+        double xLinePosition =  xAxisInterval[0] + 0.5 * xAxisLength;
+        double yLinePosition =  yAxisInterval[0] + 0.5 * yAxisLength;
 
-    allOthers.push_back(BAOther(xLinePosition, yLinePosition,acquisitionIndex ));
+        allOthers.push_back(BAOther(xLinePosition, yLinePosition, acquisitionIndex, userDescription ));
 
-    DrawAll();
+        DrawAll();
 
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
+        //Gets current canvas and updates after button press
+        TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+        fCanvas->cd();
+        fCanvas->Update();
+    }
 }
 
 
