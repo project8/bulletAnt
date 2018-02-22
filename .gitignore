@@ -32,5 +32,6 @@ install/*
 # GEdit
 *~
 
-#root files
+#other common data files
 *.root
+*.yaml

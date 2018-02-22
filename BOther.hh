@@ -12,11 +12,12 @@ class BOther
 
     public:
         BOther(const double &x, const double &y,const int &acqNumber);
-        //void SetComment();
+        void SetComment(const std::string &sInput);
         void Draw();
         int GetAcquisitionNumber();
         double GetTime();
         double GetFrequency();
+        std::string GetComment();
 
     private:
         TMarker featurePosition;
@@ -30,6 +31,16 @@ BOther::BOther(const double &x, const double &y,const int &acqNumber):
 {
     featurePosition.SetMarkerColor(kWhite);
 
+}
+
+void BOther::SetComment(const std::string &sInput)
+{
+    userComment = sInput;
+}
+
+std::string BOther::GetComment()
+{
+    return userComment;
 }
 
 void BOther::Draw()

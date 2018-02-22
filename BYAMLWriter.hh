@@ -14,7 +14,7 @@ class BYAMLWriter
 {
 
     public:
-        BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve> &c, const std::vector<BOther> &o, const std::string &filename);
+        BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve> &c, const std::vector<BOther> &o, const std::string &filename, const std::string &sName);
 
         void Write();
 
@@ -36,11 +36,12 @@ class BYAMLWriter
 
         std::string GetDate();
 };
-BYAMLWriter::BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve> &c, const std::vector<BOther> &o, const std::string &filename): 
+BYAMLWriter::BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve> &c, const std::vector<BOther> &o, const std::string &filename, const std::string &sName): 
         allTracks(t), 
         allCurves(c), 
         allOthers(o), 
-        outputFilename(filename) 
+        outputFilename(filename) ,
+        scannerName(sName) 
 {
     todaysDate  = GetDate();
 
@@ -49,11 +50,11 @@ BYAMLWriter::BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve>
 std::string BYAMLWriter::GetDate()
 {
     TDatime dateTime;
-    std::string sDate = std::string(dateTime.GetYear());
+    std::string sDate = std::to_string(dateTime.GetYear());
     sDate +="-";
-    sDate +=std::string(dateTime.GetMonth());
+    sDate +=std::to_string(dateTime.GetMonth());
     sDate +="-";
-    sDate +=std::string(dateTime.GetDay());
+    sDate +=std::to_string(dateTime.GetDay());
 
     return sDate;
 }
@@ -67,10 +68,10 @@ void BYAMLWriter::Write()
     WriteOthers();
 }
 
-void BYAMLWriter::WriteMetaData()
+void BYAMLWriter::WriteMetadata()
 {
     std::ofstream outputFileStream;
-    outputFileStream.open(outputFilename);
+    outputFileStream.open(outputFilename, std::ofstream::trunc);
     outputFileStream << "metadata:" <<std::endl;
     outputFileStream << "\tscanner: \""<<scannerName<<"\""<<std::endl;
     outputFileStream << "\tdate: \""<<todaysDate<<"\""<<std::endl;
@@ -83,59 +84,66 @@ void BYAMLWriter::WriteMetaData()
 
 void BYAMLWriter::WriteTracks()
 {
-    std::ofstream outputFileStream;
-    outputFileStream.open(outputFilename);
-    outputFileStream << "tracks:" <<std::endl;
-    
-    for(int i=0;i<allTracks.size();++i)
+    if(!allTracks.empty())
     {
-        outputFileStream << "\t- start_f: "<<allTracks[i].GetStartFrequency() <<std::endl;
-        outputFileStream << "\t  start_t: "<<allTracks[i].GetStartTime() <<std::endl;
-        outputFileStream << "\t  end_f: "<<allTracks[i].GetEndFrequency() <<std::endl;
-        outputFileStream << "\t  end_t: "<<allTracks[i].GetEndTime() <<std::endl;
-        outputFileStream << "\t  acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl;
-        if(allTracks[i].GetSidebandStatus())
-            outputFileStream << "\t  sideband: "<<allTracks[i].GetSidebandStatus() <<std::endl;
-        if(allTracks[i].GetCurvedStatus())
-            outputFileStream << "\t  curved: "<<allTracks[i].GetCurvedStatus() <<std::endl;  //may need quotes around true
+        std::ofstream outputFileStream;
+        outputFileStream.open(outputFilename, std::ofstream::app);
+        outputFileStream << "tracks:" <<std::endl;
+        
+        for(int i=0;i<allTracks.size();++i)
+        {
+            outputFileStream << "\t- start_f: "<<allTracks[i].GetStartFrequency() <<std::endl;
+            outputFileStream << "\t  start_t: "<<allTracks[i].GetStartTime() <<std::endl;
+            outputFileStream << "\t  end_f: "<<allTracks[i].GetEndFrequency() <<std::endl;
+            outputFileStream << "\t  end_t: "<<allTracks[i].GetEndTime() <<std::endl;
+            outputFileStream << "\t  acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl;
+            if(allTracks[i].GetSidebandStatus())
+                outputFileStream << "\t  sideband: "<< std::boolalpha <<allTracks[i].GetSidebandStatus() <<std::endl; //Print as true/ false, not 1 or 0
+            if(allTracks[i].GetCurvedStatus())
+                outputFileStream << "\t  curved: "<< std::boolalpha << allTracks[i].GetCurvedStatus() <<std::endl;  
+        }
+        outputFileStream.close();
     }
-
-    outputFileStream.close();
 }
 
 
 void BYAMLWriter::WriteCurves()
 {
-    std::ofstream outputFileStream;
-    outputFileStream.open(outputFilename);
-    outputFileStream << "curves:" <<std::endl;
-    
-    for(int i=0;i<allCurves.size();++i)
+    if(!allCurves.empty())
     {
-        outputFileStream << "\t- time: "<<allCurves[i].GetTime() <<std::endl;
-        outputFileStream << "\t  start_f: "<<allCurves[i].GetStartFrequency() <<std::endl;
-        outputFileStream << "\t  end_f: "<<allCurves[i].GetEndFrequency() <<std::endl;
-        outputFileStream << "\t  acquisition_number: "<<allCurves[i].GetAcquisitionNumber() <<std::endl;
-    }
+        std::ofstream outputFileStream;
+        outputFileStream.open(outputFilename, std::ofstream::app);
 
-    outputFileStream.close();
+        outputFileStream << "curves:" <<std::endl;
+        
+        for(int i=0;i<allCurves.size();++i)
+        {
+            outputFileStream << "\t- time: "<<allCurves[i].GetTime() <<std::endl;
+            outputFileStream << "\t  start_f: "<<allCurves[i].GetStartFrequency() <<std::endl;
+            outputFileStream << "\t  end_f: "<<allCurves[i].GetEndFrequency() <<std::endl;
+            outputFileStream << "\t  acquisition_number: "<<allCurves[i].GetAcquisitionNumber() <<std::endl;
+        }
+        outputFileStream.close();
+    }
 }
 
 
 void BYAMLWriter::WriteOthers()
 {
-    std::ofstream outputFileStream;
-    outputFileStream.open(outputFilename);
-    outputFileStream << "other_features:" <<std::endl;
-    
-    for(int i=0;i<allOthers.size();++i)
+    if(!allOthers.empty())
     {
-        outputFileStream << "\t- time: "<<allOthers[i].GetTime() <<std::endl;
-        outputFileStream << "\t  frequency: "<<allOthers[i].GetFrequency() <<std::endl;
-        outputFileStream << "\t  comment: "<<allOthers[i].GetComment() <<std::endl;
-        outputFileStream << "\t  acquisition_number: "<<allOthers[i].GetAcquisitionNumber() <<std::endl;
+        std::ofstream outputFileStream;
+        outputFileStream.open(outputFilename, std::ofstream::app);
+        outputFileStream << "other_features:" <<std::endl;
+        
+        for(int i=0;i<allOthers.size();++i)
+        {
+            outputFileStream << "\t- time: "<<allOthers[i].GetTime() <<std::endl;
+            outputFileStream << "\t  frequency: "<<allOthers[i].GetFrequency() <<std::endl;
+            outputFileStream << "\t  comment: "<<allOthers[i].GetComment() <<std::endl;
+            outputFileStream << "\t  acquisition_number: "<<allOthers[i].GetAcquisitionNumber() <<std::endl;
+        }
+        outputFileStream.close();
     }
-
-    outputFileStream.close();
 }
 
