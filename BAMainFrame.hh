@@ -67,12 +67,16 @@ class BAMainFrame : public TGMainFrame
         std::string userInput;
         TGTextEntry *fTE;
         TGTransientFrame *fDialog;
+        std::string spectrogramFilename;
 
 
     ClassDef(BAMainFrame, 0)
 };
 
-BAMainFrame::BAMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight) : TGMainFrame(p, windowWidth, windowHeight), acquisitionIndex(0)
+BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t windowWidth, UInt_t windowHeight) : 
+    TGMainFrame(p, windowWidth, windowHeight), 
+    acquisitionIndex(0), 
+    spectrogramFilename(inputFilename)
 {
 
     spectrogramFile = new TFile(spectrogramFilename.c_str());
@@ -354,10 +358,11 @@ void BAMainFrame::WriteToYAML()
     const std::string userPrompt = "Please enter your last name (no caps/ spaces)";
     CreateDialog(userPrompt);
     std::string scannerName = GetUserInput();
-    std::string outFileName = "ayy.yaml";
     if(!scannerName.empty())
     {
-        BAYAMLWriter writeYAML(allTracks,allCurves,allOthers,outFileName, scannerName);
+        BAYAMLWriter writeYAML(allTracks,allCurves,allOthers, spectrogramFilename, scannerName);
+        std::cout<<scannerName<<std::endl;
+        std::cout<<spectrogramFilename<<std::endl;
         writeYAML.Write();
     }
 

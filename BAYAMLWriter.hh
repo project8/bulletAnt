@@ -9,12 +9,14 @@
 #include "BACurve.hh"
 #include "BAOther.hh"
 #include <iostream>
+#include <regex>
+#include <string>
 
 class BAYAMLWriter
 {
 
     public:
-        BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &filename, const std::string &sName);
+        BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName);
 
         void Write();
 
@@ -23,6 +25,7 @@ class BAYAMLWriter
         std::vector<BATrack> allTracks;
         std::vector<BACurve> allCurves;
         std::vector<BAOther> allOthers;
+        std::string inputFilename;
         std::string outputFilename;
         std::string scannerName;
         std::string todaysDate;
@@ -35,15 +38,42 @@ class BAYAMLWriter
         void WriteOthers();
 
         std::string GetDate();
+        void GetOutputFilename();
+        void GetRunID();
 };
-BAYAMLWriter::BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &filename, const std::string &sName): 
+BAYAMLWriter::BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName): 
         allTracks(t), 
         allCurves(c), 
         allOthers(o), 
-        outputFilename(filename) ,
+        inputFilename(inFilename),
         scannerName(sName) 
 {
     todaysDate  = GetDate();
+
+}
+
+void BAYAMLWriter::GetOutputFilename()
+{
+    //Change extension
+    outputFilename = inputFilename;
+    const std::string rootExtension = ".root";
+    const std::string yamlExtension = std::string("_") + scannerName + ".yaml";
+    outputFilename = std::regex_replace( outputFilename , std::regex(rootExtension), yamlExtension );
+
+    const std::string spectrogramPrefix = "spectrograms_rid";
+    const std::string handscanPrefix = "handscan_tracks_rid";
+    outputFilename = std::regex_replace( outputFilename , std::regex(spectrogramPrefix), handscanPrefix );
+}
+
+void BAYAMLWriter::GetRunID()
+{
+    std::string sPrefix("spectrograms_rid");
+    int substringIndex[0];
+    substringIndex[0] = inputFilename.find(sPrefix) + sPrefix.size();
+    std::cout<<substringIndex[0]<<" "<<sPrefix.size()<<std::endl;
+    substringIndex[1] = inputFilename.find("_",substringIndex[0]+1);
+    std::cout<<substringIndex[1]<<std::endl;
+    runID = inputFilename.substr(substringIndex[0],substringIndex[1] - substringIndex[0]);
 
 }
 
@@ -62,6 +92,9 @@ std::string BAYAMLWriter::GetDate()
 
 void BAYAMLWriter::Write()
 {
+    GetOutputFilename();
+    GetRunID();
+
     WriteMetadata();
     WriteTracks();
     WriteCurves();
@@ -71,6 +104,7 @@ void BAYAMLWriter::Write()
 void BAYAMLWriter::WriteMetadata()
 {
     std::ofstream outputFileStream;
+    std::cout<<"outname: "<<outputFilename<<std::endl;
     outputFileStream.open(outputFilename, std::ofstream::trunc);
     outputFileStream << "metadata:" <<std::endl;
     outputFileStream << "    scanner: \""<<scannerName<<"\""<<std::endl;
