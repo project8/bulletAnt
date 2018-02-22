@@ -1,5 +1,5 @@
 /*
- * BCurve.hh
+ * BACurve.hh
  *
  *  Created on: Feb 21, 2018
  *      Author: nbuzinsky
@@ -7,10 +7,10 @@
 
 #include <TLine.h>
 
-class BCurve
+class BACurve
 {
     public:
-        BCurve(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber);
+        BACurve(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber);
         void Draw();
         int GetAcquisitionNumber();
         double GetTime();
@@ -23,7 +23,7 @@ class BCurve
 
 };
 
-BCurve::BCurve(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber): 
+BACurve::BACurve(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber): 
     curvedLine(TLine(x1,y1,x2,y2)), 
     acquisitionNumber(acqNumber)
 {
@@ -33,25 +33,25 @@ BCurve::BCurve(const double &x1, const double &y1, const double &x2, const doubl
    return;
 }
 
-void BCurve::Draw()
+void BACurve::Draw()
 {
     curvedLine.Draw();
 
 }
 
-int BCurve::GetAcquisitionNumber()
+int BACurve::GetAcquisitionNumber()
 {
     return acquisitionNumber;
 }
-double BCurve::GetTime()
+double BACurve::GetTime()
 {
     return (curvedLine.GetX1() + curvedLine.GetX2()) / 2.;
 }
-double BCurve::GetStartFrequency()
+double BACurve::GetStartFrequency()
 {
     return curvedLine.GetY1();
 }
-double BCurve::GetEndFrequency()
+double BACurve::GetEndFrequency()
 {
     return curvedLine.GetY2();
 }

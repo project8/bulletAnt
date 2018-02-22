@@ -1,15 +1,15 @@
 /*
- * BTrack.hh
+ * BATrack.hh
  *
  *  Created on: Feb 21, 2018
  *      Author: nbuzinsky
  */
 
 #include <TLine.h>
-class BTrack
+class BATrack
 {
     public:
-        BTrack(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber);
+        BATrack(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber);
         void Draw();
         int GetAcquisitionNumber();
 
@@ -31,7 +31,7 @@ class BTrack
         int acquisitionNumber;
 };
 
-BTrack::BTrack(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber): 
+BATrack::BATrack(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber): 
     trackRidge(TLine(x1,y1,x2,y2)), 
     isSideband(false), 
     isCurved(false), 
@@ -43,53 +43,53 @@ BTrack::BTrack(const double &x1, const double &y1, const double &x2, const doubl
    return;
 }
 
-void BTrack::Draw()
+void BATrack::Draw()
 {
     trackRidge.Draw();
 
 }
 
-int BTrack::GetAcquisitionNumber()
+int BATrack::GetAcquisitionNumber()
 {
     return acquisitionNumber;
 }
 
-double BTrack::GetStartTime()
+double BATrack::GetStartTime()
 {
     return trackRidge.GetX1();
 }
 
-double BTrack::GetStartFrequency()
+double BATrack::GetStartFrequency()
 {
     return trackRidge.GetY1();
 }
 
-double BTrack::GetEndTime()
+double BATrack::GetEndTime()
 {
     return trackRidge.GetX2();
 }
 
-double BTrack::GetEndFrequency()
+double BATrack::GetEndFrequency()
 {
     return trackRidge.GetY2();
 }
 
-void BTrack::SetSidebandStatus()
+void BATrack::SetSidebandStatus()
 {
     isSideband = !isSideband;
 }
 
-void BTrack::SetCurvedStatus()
+void BATrack::SetCurvedStatus()
 {
     isCurved = !isCurved;
 }
 
-bool BTrack::GetSidebandStatus()
+bool BATrack::GetSidebandStatus()
 {
     return isSideband;
 }
 
-bool BTrack::GetCurvedStatus()
+bool BATrack::GetCurvedStatus()
 {
     return isCurved;
 }

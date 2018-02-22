@@ -15,10 +15,7 @@
 #include <TH2D.h>
 #include <TApplication.h>
 
-//#include "BTrack.hh"
-//#include "BCurve.hh"
-//#include "BOther.hh"
-#include "BYAMLWriter.hh"
+#include "BAYAMLWriter.hh"
 #include "HandScanAssistant.hh"
 
 
@@ -307,7 +304,7 @@ void MyMainFrame::WriteToYAML()
     std::string outFileName = "ayy.yaml";
     if(!scannerName.empty())
     {
-        BYAMLWriter writeYAML(allTracks,allCurves,allOthers,outFileName, scannerName);
+        BAYAMLWriter writeYAML(allTracks,allCurves,allOthers,outFileName, scannerName);
         writeYAML.Write();
     }
 
@@ -371,7 +368,7 @@ void MyMainFrame::CreateOther()
     double xLinePosition =  xAxisInterval[0] + 0.5 * xAxisLength;
     double yLinePosition =  yAxisInterval[0] + 0.5 * yAxisLength;
 
-    allOthers.push_back(BOther(xLinePosition, yLinePosition,acquisitionIndex ));
+    allOthers.push_back(BAOther(xLinePosition, yLinePosition,acquisitionIndex ));
 
     DrawAll();
 
@@ -392,7 +389,7 @@ void MyMainFrame::CreateCurve()
     double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
     double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
 
-    allCurves.push_back(BCurve(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+    allCurves.push_back(BACurve(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
 
     DrawAll();
 
@@ -413,7 +410,7 @@ void MyMainFrame::CreateLine()
     double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
     double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
 
-    allTracks.push_back(BTrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+    allTracks.push_back(BATrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
 
     DrawAll();
 

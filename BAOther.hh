@@ -1,5 +1,5 @@
 /*
- * BOther.hh
+ * BAOther.hh
  *
  *  Created on: Feb 21, 2018
  *      Author: nbuzinsky
@@ -7,11 +7,11 @@
 
 #include <string>
 
-class BOther
+class BAOther
 {
 
     public:
-        BOther(const double &x, const double &y,const int &acqNumber);
+        BAOther(const double &x, const double &y,const int &acqNumber);
         void SetComment(const std::string &sInput);
         void Draw();
         int GetAcquisitionNumber();
@@ -25,7 +25,7 @@ class BOther
         int acquisitionNumber;
 };
 
-BOther::BOther(const double &x, const double &y,const int &acqNumber): 
+BAOther::BAOther(const double &x, const double &y,const int &acqNumber): 
     featurePosition(TMarker(x,y,8)), 
     acquisitionNumber(acqNumber)
 {
@@ -33,32 +33,32 @@ BOther::BOther(const double &x, const double &y,const int &acqNumber):
 
 }
 
-void BOther::SetComment(const std::string &sInput)
+void BAOther::SetComment(const std::string &sInput)
 {
     userComment = sInput;
 }
 
-std::string BOther::GetComment()
+std::string BAOther::GetComment()
 {
     return userComment;
 }
 
-void BOther::Draw()
+void BAOther::Draw()
 {
     featurePosition.Draw();
 }
 
-int BOther::GetAcquisitionNumber()
+int BAOther::GetAcquisitionNumber()
 {
     return acquisitionNumber;
 }
 
-double BOther::GetTime()
+double BAOther::GetTime()
 {
     return featurePosition.GetX();
 }
 
-double BOther::GetFrequency()
+double BAOther::GetFrequency()
 {
     return featurePosition.GetY();
 }

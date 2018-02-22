@@ -32,9 +32,9 @@ class MyMainFrame : public TGMainFrame
     private:
         TRootEmbeddedCanvas *fEmbeddedCanvas;
 
-        std::vector<BTrack> allTracks;
-        std::vector<BCurve> allCurves;
-        std::vector<BOther> allOthers;
+        std::vector<BATrack> allTracks;
+        std::vector<BACurve> allCurves;
+        std::vector<BAOther> allOthers;
 
         TFile *spectrogramFile;
         TH2D *currentHistogram;

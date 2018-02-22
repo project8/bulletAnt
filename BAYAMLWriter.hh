@@ -1,28 +1,28 @@
 /*
- * BYAMLWriter.hh
+ * BAYAMLWriter.hh
  *
  *  Created on: Feb 21, 2018
  *      Author: nbuzinsky
  */
 
-#include "BTrack.hh"
-#include "BCurve.hh"
-#include "BOther.hh"
+#include "BATrack.hh"
+#include "BACurve.hh"
+#include "BAOther.hh"
 #include <iostream>
 
-class BYAMLWriter
+class BAYAMLWriter
 {
 
     public:
-        BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve> &c, const std::vector<BOther> &o, const std::string &filename, const std::string &sName);
+        BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &filename, const std::string &sName);
 
         void Write();
 
 
     private:
-        std::vector<BTrack> allTracks;
-        std::vector<BCurve> allCurves;
-        std::vector<BOther> allOthers;
+        std::vector<BATrack> allTracks;
+        std::vector<BACurve> allCurves;
+        std::vector<BAOther> allOthers;
         std::string outputFilename;
         std::string scannerName;
         std::string todaysDate;
@@ -36,7 +36,7 @@ class BYAMLWriter
 
         std::string GetDate();
 };
-BYAMLWriter::BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve> &c, const std::vector<BOther> &o, const std::string &filename, const std::string &sName): 
+BAYAMLWriter::BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &filename, const std::string &sName): 
         allTracks(t), 
         allCurves(c), 
         allOthers(o), 
@@ -47,7 +47,7 @@ BYAMLWriter::BYAMLWriter(const std::vector<BTrack> &t, const std::vector<BCurve>
 
 }
 
-std::string BYAMLWriter::GetDate()
+std::string BAYAMLWriter::GetDate()
 {
     TDatime dateTime;
     std::string sDate = std::to_string(dateTime.GetYear());
@@ -60,7 +60,7 @@ std::string BYAMLWriter::GetDate()
 }
 
 
-void BYAMLWriter::Write()
+void BAYAMLWriter::Write()
 {
     WriteMetadata();
     WriteTracks();
@@ -68,7 +68,7 @@ void BYAMLWriter::Write()
     WriteOthers();
 }
 
-void BYAMLWriter::WriteMetadata()
+void BAYAMLWriter::WriteMetadata()
 {
     std::ofstream outputFileStream;
     outputFileStream.open(outputFilename, std::ofstream::trunc);
@@ -82,7 +82,7 @@ void BYAMLWriter::WriteMetadata()
 
 }
 
-void BYAMLWriter::WriteTracks()
+void BAYAMLWriter::WriteTracks()
 {
     if(!allTracks.empty())
     {
@@ -107,7 +107,7 @@ void BYAMLWriter::WriteTracks()
 }
 
 
-void BYAMLWriter::WriteCurves()
+void BAYAMLWriter::WriteCurves()
 {
     if(!allCurves.empty())
     {
@@ -128,7 +128,7 @@ void BYAMLWriter::WriteCurves()
 }
 
 
-void BYAMLWriter::WriteOthers()
+void BAYAMLWriter::WriteOthers()
 {
     if(!allOthers.empty())
     {
