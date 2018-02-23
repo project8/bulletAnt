@@ -128,11 +128,11 @@ void BAYAMLWriter::WriteTracks()
             outputFileStream << "      start_t: "<<allTracks[i].GetStartTime() <<std::endl;
             outputFileStream << "      end_f: "<<allTracks[i].GetEndFrequency() <<std::endl;
             outputFileStream << "      end_t: "<<allTracks[i].GetEndTime() <<std::endl;
-            outputFileStream << "      acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl;
             if(allTracks[i].GetSidebandStatus())
                 outputFileStream << "      sideband: "<< std::boolalpha <<allTracks[i].GetSidebandStatus() <<std::endl; //Print as true/ false, not 1 or 0
             if(allTracks[i].GetCurvedStatus())
                 outputFileStream << "      curved: "<< std::boolalpha << allTracks[i].GetCurvedStatus() <<std::endl;  
+            outputFileStream << "      acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl<<std::endl;
         }
         outputFileStream.close();
     }
@@ -153,7 +153,7 @@ void BAYAMLWriter::WriteCurves()
             outputFileStream << "    - time: "<<allCurves[i].GetTime() <<std::endl;
             outputFileStream << "      start_f: "<<allCurves[i].GetStartFrequency() <<std::endl;
             outputFileStream << "      end_f: "<<allCurves[i].GetEndFrequency() <<std::endl;
-            outputFileStream << "      acquisition_number: "<<allCurves[i].GetAcquisitionNumber() <<std::endl;
+            outputFileStream << "      acquisition_number: "<<allCurves[i].GetAcquisitionNumber() <<std::endl<<std::endl;
         }
         outputFileStream.close();
     }
@@ -173,7 +173,7 @@ void BAYAMLWriter::WriteOthers()
             outputFileStream << "    - time: "<<allOthers[i].GetTime() <<std::endl;
             outputFileStream << "      frequency: "<<allOthers[i].GetFrequency() <<std::endl;
             outputFileStream << "      comment: "<<allOthers[i].GetComment() <<std::endl;
-            outputFileStream << "      acquisition_number: "<<allOthers[i].GetAcquisitionNumber() <<std::endl;
+            outputFileStream << "      acquisition_number: "<<allOthers[i].GetAcquisitionNumber() <<std::endl<<std::endl;
         }
         outputFileStream.close();
     }
