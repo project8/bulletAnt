@@ -70,9 +70,7 @@ void BAYAMLWriter::GetRunID()
     std::string sPrefix("spectrograms_rid");
     int substringIndex[0];
     substringIndex[0] = inputFilename.find(sPrefix) + sPrefix.size();
-    std::cout<<substringIndex[0]<<" "<<sPrefix.size()<<std::endl;
     substringIndex[1] = inputFilename.find("_",substringIndex[0]+1);
-    std::cout<<substringIndex[1]<<std::endl;
     runID = inputFilename.substr(substringIndex[0],substringIndex[1] - substringIndex[0]);
 
 }

@@ -495,6 +495,7 @@ void BAMainFrame::DrawNextSpectrogram()
         progressBar->Increment(1);
         DrawCurrentSpectrogram();
         SetButtonStatus();
+
     }
     else
     {
@@ -546,22 +547,28 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     currentHistogram->Draw("colz");
 
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
-    //currentHistogram->CenterTitle();
-
-    DrawAll();
 
     //By default, have zoomed in view of spectrogram
     currentHistogram->GetXaxis()->SetRangeUser(0,0.0025);
     currentHistogram->GetYaxis()->SetRangeUser(50e6,65e6);
 
+    currentHistogram->SetBit(kCannotPick);
+
+
     horizontalXSlider->SetPosition(0,0.0025);
     horizontalYSlider->SetPosition(50e6,65e6);
 
+    DrawAll();
 
     //Gets current canvas and updates after button press
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
     fCanvas->cd();
     fCanvas->Update();
+
+    TObject *obj = gPad->GetListOfPrimitives()->At(0);
+    TFrame *ftemp = (TFrame *) obj;
+    ftemp->SetBit(kCannotPick);
+
 }
 
 void BAMainFrame::DoSlider()
@@ -579,6 +586,11 @@ void BAMainFrame::DoSlider()
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
     fCanvas->cd();
     fCanvas->Update();
+
+    //gPad->GetListOfPrimitives()->Print();
+    TObject *obj = gPad->GetListOfPrimitives()->At(0);
+    TFrame *ftemp = (TFrame *) obj;
+    ftemp->SetBit(kCannotPick);
 }
 
 BAMainFrame::~BAMainFrame()
