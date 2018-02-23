@@ -5,7 +5,11 @@
  *      Author: nbuzinsky
  */
 
+#ifndef BATRACK_HH_
+#define BATRACK_HH_
+
 #include <TLine.h>
+
 class BATrack
 {
     public:
@@ -94,4 +98,4 @@ bool BATrack::GetCurvedStatus()
     return isCurved;
 }
 
-
+#endif /* BATRACK_HH_ */

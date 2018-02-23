@@ -5,6 +5,9 @@
  *      Author: nbuzinsky
  */
 
+#ifndef BACURVE_HH_
+#define BACURVE_HH_
+
 #include <TLine.h>
 
 class BACurve
@@ -55,3 +58,5 @@ double BACurve::GetEndFrequency()
 {
     return curvedLine.GetY2();
 }
+
+#endif /* BACURVE_HH_ */

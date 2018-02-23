@@ -5,6 +5,9 @@
  *      Author: nbuzinsky
  */
 
+#ifndef BAOTHER_HH_
+#define BAOTHER_HH_
+
 #include <string>
 
 class BAOther
@@ -57,3 +60,5 @@ double BAOther::GetFrequency()
 {
     return featurePosition.GetY();
 }
+
+#endif /* BAOTHER_HH_ */

@@ -5,6 +5,9 @@
  *      Author: nbuzinsky
  */
 
+#ifndef BAYAMLWRITER_HH_
+#define BAYAMLWRITER_HH_
+
 #include "BATrack.hh"
 #include "BACurve.hh"
 #include "BAOther.hh"
@@ -179,3 +182,4 @@ void BAYAMLWriter::WriteOthers()
     }
 }
 
+#endif /* BAYAMLWRITER_HH_ */

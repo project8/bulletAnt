@@ -6,6 +6,7 @@ bulletAnt is a graphical user interface for the hand-scanning of waterfall plots
 Dependencies
 ------------
  - ROOT (https://root.cern.ch/) (6.x should work)
+ - libyaml
 
 
 Instructions for Use

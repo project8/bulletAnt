@@ -1,3 +1,13 @@
+/*
+ * BAMainFrame.hh
+ *
+ *  Created on: Feb 23, 2018
+ *      Author: nbuzinsky
+ */
+
+#ifndef BAMAINFRAME_HH_
+#define BAMAINFRAME_HH_
+
 #include <TGClient.h>
 #include <TGButton.h>
 #include <TGLabel.h>
@@ -605,3 +615,4 @@ void BAMainFrame::CloseWindow()
    delete this; 
 }
 
+#endif /* BAMAINFRAME_HH_ */
