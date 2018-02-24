@@ -21,7 +21,7 @@ bulletAnt is a graphical user interface aimed at assisting users in handscanning
  Once opened, a new window containing the GUI will pop up on your screen, with two button panels, on the bottom and on the left, as well as the spectrogram on the right. 
  Below is an image of the GUI.
 
-![bulletAnt GUI](https://github.com/project8/bulletAnt/tree/master/tutorial/bulletAntInterface.png?raw=true "bulletAnt Graphical User Interface")
+![bulletAnt GUI](https://github.com/project8/bulletAnt/blob/master/Tutorial/bulletAntInterface.png?raw=true "bulletAnt Graphical User Interface")
 
 **Create Track:**
 Creates a white line segment in the center of your window. Drag and drop the position of the line with the underlying electron track. 
