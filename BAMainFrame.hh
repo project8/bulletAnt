@@ -44,6 +44,9 @@ class BAMainFrame : public TGMainFrame
         void DrawNextSpectrogram();
         void DrawPreviousSpectrogram();
 
+        void OkayButton();
+        void CancelButton();
+
     private:
         void CreateDialog(const std::string &userPrompt);
         const char *LoadFileDialog();
@@ -52,8 +55,6 @@ class BAMainFrame : public TGMainFrame
         void DrawAll();
         void SetButtonStatus();
 
-        void OkayButton();
-        void CancelButton();
 
         void CloseWindow();
 
@@ -456,6 +457,19 @@ void BAMainFrame::DrawPreviousSpectrogram()
 
 }
 
+void BAMainFrame::OkayButton()
+{
+    userInput = std::string(fTE->GetText());
+    fDialog->CloseWindow();
+}
+
+void BAMainFrame::CancelButton()
+{
+    userInput.clear();
+    fDialog->CloseWindow();
+}
+
+
 
 void BAMainFrame::CreateDialog(const std::string &userPrompt )
 {
@@ -627,18 +641,6 @@ void BAMainFrame::SetButtonStatus()
             break;
         }
     }
-}
-
-void BAMainFrame::OkayButton()
-{
-    userInput = std::string(fTE->GetText());
-    fDialog->CloseWindow();
-}
-
-void BAMainFrame::CancelButton()
-{
-    userInput.clear();
-    fDialog->CloseWindow();
 }
 
 

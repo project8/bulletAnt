@@ -35,6 +35,8 @@ class BATrack
         void SetEndTime(const double &endTime);
         void SetEndFrequency(const double &endFrequency);
 
+        bool IsValid();
+
     private:
         TLine trackRidge;
         bool isSideband;
@@ -127,6 +129,11 @@ void BATrack::SetEndFrequency(const double &endFrequency)
 void BATrack::SetAcquisitionNumber(const int &acqNumber)
 {
     acquisitionNumber = acqNumber;
+}
+
+bool BATrack::IsValid()
+{
+    return ((GetStartTime() > 0) && (GetEndTime() > 0));
 }
 
 #endif /* BATRACK_HH_ */

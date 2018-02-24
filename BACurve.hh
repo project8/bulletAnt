@@ -26,6 +26,8 @@ class BACurve
         void SetStartFrequency(const double &startFrequency);
         void SetEndFrequency(const double &endFrequency);
 
+        bool IsValid();
+
     private:
         TLine curvedLine; //Straight Line: shows where beginning and end of curve is
         int acquisitionNumber;
@@ -86,6 +88,11 @@ double BACurve::GetStartFrequency()
 double BACurve::GetEndFrequency()
 {
     return curvedLine.GetY2();
+}
+
+bool BACurve::IsValid()
+{
+    return ((curvedLine.GetX1() > 0) && (curvedLine.GetX2()>0));
 }
 
 #endif /* BACURVE_HH_ */

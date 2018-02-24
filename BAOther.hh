@@ -27,6 +27,8 @@ class BAOther
         void SetFrequency(const double &frequency);
         void SetComment(const std::string &comment);
 
+        bool IsValid();
+
     private:
         TMarker featurePosition;
         std::string userComment;
@@ -83,6 +85,11 @@ void BAOther::SetFrequency(const double &frequency)
 void BAOther::SetComment(const std::string &comment)
 {
     userComment = comment;
+}
+
+bool BAOther::IsValid()
+{
+    return GetTime() > 0;
 }
 
 #endif /* BAOTHER_HH_ */
