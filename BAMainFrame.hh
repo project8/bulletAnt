@@ -358,16 +358,19 @@ void BAMainFrame::WriteToYAML()
 
 void BAMainFrame::LoadFromYAML()
 {
-    std::string loadingFilename = LoadFileDialog();
-    std::cout<<"Now loading file: "<<loadingFilename<<std::endl;
-    BAYAMLReader yamlReader(loadingFilename);
-    yamlReader.Read();
+    const char *fileCharacters = LoadFileDialog();
+    if(fileCharacters)
+    {
+        std::string loadingFilename = fileCharacters;
+        BAYAMLReader yamlReader(loadingFilename);
+        yamlReader.Read();
 
-    allTracks = yamlReader.GetTracks();
-    allCurves = yamlReader.GetCurves(); 
-    allOthers = yamlReader.GetOthers();
+        allTracks = yamlReader.GetTracks();
+        allCurves = yamlReader.GetCurves(); 
+        allOthers = yamlReader.GetOthers();
 
-    DrawCurrentSpectrogram();
+        DrawCurrentSpectrogram();
+    }
 }
 
 void BAMainFrame::DoSlider()
