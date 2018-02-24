@@ -14,10 +14,12 @@
 #include <TGFrame.h>
 #include <TGLayout.h>
 #include <TGSplitter.h>
+#include <TGFileDialog.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TH2D.h>
 
 #include "BAYAMLWriter.hh"
+#include "BAYAMLReader.hh"
 
 class BAMainFrame : public TGMainFrame 
 {
@@ -25,32 +27,36 @@ class BAMainFrame : public TGMainFrame
         BAMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight);
         virtual ~BAMainFrame();
 
-        void WriteToYAML();
-        void CloseWindow();
 
-        void CreateLine();
+        void CreateTrack();
         void CreateCurve();
         void CreateOther();
-
-        void DrawAll();
-        void PrintAllTracks();
-        void DrawNextSpectrogram();
-
-        void DrawCurrentSpectrogram();
-        void DrawPreviousSpectrogram();
-        void DoSlider();
-        void SetupHistogramVector();
 
         void CurvedBoolButton();
         void SidebandBoolButton();
 
+        void WriteToYAML();
+        void LoadFromYAML();
+
+        void DoSlider();
+
+        void DrawCurrentSpectrogram();
+        void DrawNextSpectrogram();
+        void DrawPreviousSpectrogram();
+
+    private:
+        void CreateDialog(const std::string &userPrompt);
+        const char *LoadFileDialog();
+
+        void SetupHistogramVector();
+        void DrawAll();
         void SetButtonStatus();
 
-        void CreateDialog(const std::string &userPrompt);
         void OkayButton();
         void CancelButton();
-        std::string GetUserInput();
-    private:
+
+        void CloseWindow();
+
         TRootEmbeddedCanvas *fEmbeddedCanvas;
 
         std::vector<BATrack> allTracks;
@@ -152,7 +158,7 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     progressBar->SetRange(0,histogramNames.size()-1);
 
     TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
-    createTrackButton->Connect("Clicked()","BAMainFrame",this,"CreateLine()");
+    createTrackButton->Connect("Clicked()","BAMainFrame",this,"CreateTrack()");
     leftButtonFrame->AddFrame(createTrackButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 5,5,3,4));
     createTrackButton->SetToolTipText("Create a new Line to fit to a track");
 
@@ -178,11 +184,15 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     leftButtonFrame->AddFrame(createOtherButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
     createOtherButton->SetToolTipText("Create a line specifically for curved track");
 
-
     TGTextButton *writeYAMLButton = new TGTextButton(leftButtonFrame,"&Write To YAML");
     writeYAMLButton->Connect("Clicked()","BAMainFrame",this,"WriteToYAML()");
     leftButtonFrame->AddFrame(writeYAMLButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
     writeYAMLButton->SetToolTipText("Write all found tracks to file");
+
+    TGTextButton *loadYAMLButton = new TGTextButton(leftButtonFrame,"&Load from YAML");
+    loadYAMLButton->Connect("Clicked()","BAMainFrame",this,"LoadFromYAML()");
+    leftButtonFrame->AddFrame(loadYAMLButton, new TGLayoutHints(kLHintsCenterX | kLHintsCenterY, 5,5,3,4));
+    loadYAMLButton->SetToolTipText("Load the tracks from another YAML into bulletAnt");
 
     TGTextButton *refreshPlotButton = new TGTextButton(leftButtonFrame,"&Refresh Plot");
     refreshPlotButton->Connect("Clicked()","BAMainFrame",this,"DrawCurrentSpectrogram()");
@@ -226,6 +236,84 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     DrawCurrentSpectrogram();
 }
 
+BAMainFrame::~BAMainFrame()
+{
+   // Clean up all widgets, frames and layouthints that were used
+   Cleanup();
+}
+
+
+void BAMainFrame::CreateTrack()
+{
+    // Draws function graphics in randomly chosen interval
+    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
+    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
+
+    allTracks.push_back(BATrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+
+    DrawAll();
+
+    sidebandButton->SetState(kButtonUp);
+    curvedButton->SetState(kButtonUp);
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
+}
+
+void BAMainFrame::CreateCurve()
+{
+    // Draws function graphics in randomly chosen interval
+    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
+    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
+
+    allCurves.push_back(BACurve(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+
+    DrawAll();
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
+}
+
+void BAMainFrame::CreateOther()
+{
+    const std::string userPrompt = "Please enter a brief description of this feature";
+    CreateDialog(userPrompt);
+    std::string userDescription = userInput;
+    userInput.clear();
+    if(!userDescription.empty())
+    {
+        // Draws function graphics in randomly chosen interval
+        double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+        double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+        double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+        double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+        double xLinePosition =  xAxisInterval[0] + 0.5 * xAxisLength;
+        double yLinePosition =  yAxisInterval[0] + 0.5 * yAxisLength;
+
+        allOthers.push_back(BAOther(xLinePosition, yLinePosition, acquisitionIndex, userDescription ));
+
+        DrawAll();
+
+        //Gets current canvas and updates after button press
+        TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+        fCanvas->cd();
+        fCanvas->Update();
+    }
+}
+
+
 void BAMainFrame::CurvedBoolButton()
 {
     if(allTracks.empty()) return; //Do not want segfaults ... do nothing
@@ -253,22 +341,119 @@ void BAMainFrame::SidebandBoolButton()
     }
 }
 
-std::string BAMainFrame::GetUserInput()
+void BAMainFrame::WriteToYAML()
 {
-    return userInput;
+    const std::string userPrompt = "Please enter your last name (no caps/ spaces)";
+    CreateDialog(userPrompt);
+    std::string scannerName = userInput;
+    userInput.clear();
+    if(!scannerName.empty())
+    {
+        BAYAMLWriter writeYAML(allTracks,allCurves,allOthers, spectrogramFilename, scannerName);
+        writeYAML.Write();
+    }
+
 }
 
-
-void BAMainFrame::OkayButton()
+void BAMainFrame::LoadFromYAML()
 {
-    userInput = std::string(fTE->GetText());
-    fDialog->CloseWindow();
+    std::string loadingFilename = LoadFileDialog();
+    std::cout<<"Now loading file: "<<loadingFilename<<std::endl;
+    BAYAMLReader yamlReader(loadingFilename);
+    yamlReader.Read();
+
+    allTracks = yamlReader.GetTracks();
+    allCurves = yamlReader.GetCurves(); 
+    allOthers = yamlReader.GetOthers();
+
+    DrawCurrentSpectrogram();
 }
 
-void BAMainFrame::CancelButton()
+void BAMainFrame::DoSlider()
 {
-    userInput = "";
-    fDialog->CloseWindow();
+    currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
+    currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
+    currentHistogram->Draw("colz");
+
+    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
+    //currentHistogram->CenterTitle();
+
+    DrawAll();
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
+
+    //gPad->GetListOfPrimitives()->Print();
+    TObject *obj = gPad->GetListOfPrimitives()->At(0);
+    TFrame *ftemp = (TFrame *) obj;
+    ftemp->SetBit(kCannotPick);
+}
+
+void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
+{
+    std::string currentHistogramName = histogramNames[acquisitionIndex];
+    TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
+    currentHistogram = (TH2D*) fileObject;
+    currentHistogram->Draw("colz");
+
+    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
+
+    //By default, have zoomed in view of spectrogram
+    currentHistogram->GetXaxis()->SetRangeUser(0,0.0025);
+    currentHistogram->GetYaxis()->SetRangeUser(50e6,65e6);
+
+    currentHistogram->SetBit(kCannotPick);
+
+
+    horizontalXSlider->SetPosition(0,0.0025);
+    horizontalYSlider->SetPosition(50e6,65e6);
+
+    DrawAll();
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
+
+    TObject *obj = gPad->GetListOfPrimitives()->At(0);
+    TFrame *ftemp = (TFrame *) obj;
+    ftemp->SetBit(kCannotPick);
+
+}
+
+void BAMainFrame::DrawNextSpectrogram()
+{
+    if(acquisitionIndex < histogramNames.size() - 1) //If we are not out of range
+    {
+        ++acquisitionIndex;
+        progressBar->Increment(1);
+        DrawCurrentSpectrogram();
+        SetButtonStatus();
+
+    }
+    else
+    {
+       int returnValue;
+
+       new TGMsgBox(gClient->GetRoot(), fHorizontalFrame, "Warning", "There are no more spectrograms left. Press \"Write to YAML\" if done.", kMBIconStop, 0, &returnValue);
+
+    }
+}
+
+void BAMainFrame::DrawPreviousSpectrogram()
+{
+    if(acquisitionIndex!=0)
+    {
+        --acquisitionIndex;
+
+        progressBar->Reset();
+        progressBar->Increment(acquisitionIndex);
+        DrawCurrentSpectrogram();
+        SetButtonStatus();
+    }
+
 }
 
 
@@ -362,21 +547,19 @@ void BAMainFrame::CreateDialog(const std::string &userPrompt )
    gClient->WaitFor(fDialog);
 }
 
-
-void BAMainFrame::WriteToYAML()
+const char *BAMainFrame::LoadFileDialog()
 {
-    const std::string userPrompt = "Please enter your last name (no caps/ spaces)";
-    CreateDialog(userPrompt);
-    std::string scannerName = GetUserInput();
-    if(!scannerName.empty())
-    {
-        BAYAMLWriter writeYAML(allTracks,allCurves,allOthers, spectrogramFilename, scannerName);
-        std::cout<<scannerName<<std::endl;
-        std::cout<<spectrogramFilename<<std::endl;
-        writeYAML.Write();
-    }
 
+   const char *gSaveAsTypes[] = { "YAML files","*.yaml", 0,0 };
+
+   static TGFileInfo fi;
+   fi.fFileTypes = gSaveAsTypes;
+   new TGFileDialog(gClient->GetRoot(), gClient->GetRoot(), kFDOpen, &fi);
+
+   return fi.fFilename;
 }
+
+
 
 
 
@@ -426,109 +609,6 @@ void BAMainFrame::DrawAll()
     }
 }
 
-void BAMainFrame::CreateOther()
-{
-    const std::string userPrompt = "Please enter a brief description of this feature";
-    CreateDialog(userPrompt);
-    std::string userDescription = GetUserInput();
-    if(!userDescription.empty())
-    {
-        // Draws function graphics in randomly chosen interval
-        double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
-        double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
-        double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
-        double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
-        double xLinePosition =  xAxisInterval[0] + 0.5 * xAxisLength;
-        double yLinePosition =  yAxisInterval[0] + 0.5 * yAxisLength;
-
-        allOthers.push_back(BAOther(xLinePosition, yLinePosition, acquisitionIndex, userDescription ));
-
-        DrawAll();
-
-        //Gets current canvas and updates after button press
-        TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-        fCanvas->cd();
-        fCanvas->Update();
-    }
-}
-
-
-void BAMainFrame::CreateCurve()
-{
-    // Draws function graphics in randomly chosen interval
-    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
-    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
-    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
-    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
-    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
-    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
-
-    allCurves.push_back(BACurve(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
-
-    DrawAll();
-
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
-}
-
-
-void BAMainFrame::CreateLine()
-{
-    // Draws function graphics in randomly chosen interval
-    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
-    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
-    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
-    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
-    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
-    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
-
-    allTracks.push_back(BATrack(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
-
-    DrawAll();
-
-    sidebandButton->SetState(kButtonUp);
-    curvedButton->SetState(kButtonUp);
-
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
-}
-
-void BAMainFrame::DrawNextSpectrogram()
-{
-    if(acquisitionIndex < histogramNames.size() - 1) //If we are not out of range
-    {
-        ++acquisitionIndex;
-        progressBar->Increment(1);
-        DrawCurrentSpectrogram();
-        SetButtonStatus();
-
-    }
-    else
-    {
-       int returnValue;
-
-       new TGMsgBox(gClient->GetRoot(), fHorizontalFrame, "Warning", "There are no more spectrograms left. Press \"Write to YAML\" if done.", kMBIconStop, 0, &returnValue);
-
-    }
-}
-
-void BAMainFrame::DrawPreviousSpectrogram()
-{
-    if(acquisitionIndex!=0)
-    {
-        --acquisitionIndex;
-
-        progressBar->Reset();
-        progressBar->Increment(acquisitionIndex);
-        DrawCurrentSpectrogram();
-        SetButtonStatus();
-    }
-
-}
 
 void BAMainFrame::SetButtonStatus()
 {
@@ -549,65 +629,18 @@ void BAMainFrame::SetButtonStatus()
     }
 }
 
-void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
+void BAMainFrame::OkayButton()
 {
-    std::string currentHistogramName = histogramNames[acquisitionIndex];
-    TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
-    currentHistogram = (TH2D*) fileObject;
-    currentHistogram->Draw("colz");
-
-    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
-
-    //By default, have zoomed in view of spectrogram
-    currentHistogram->GetXaxis()->SetRangeUser(0,0.0025);
-    currentHistogram->GetYaxis()->SetRangeUser(50e6,65e6);
-
-    currentHistogram->SetBit(kCannotPick);
-
-
-    horizontalXSlider->SetPosition(0,0.0025);
-    horizontalYSlider->SetPosition(50e6,65e6);
-
-    DrawAll();
-
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
-
-    TObject *obj = gPad->GetListOfPrimitives()->At(0);
-    TFrame *ftemp = (TFrame *) obj;
-    ftemp->SetBit(kCannotPick);
-
+    userInput = std::string(fTE->GetText());
+    fDialog->CloseWindow();
 }
 
-void BAMainFrame::DoSlider()
+void BAMainFrame::CancelButton()
 {
-    currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
-    currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
-    currentHistogram->Draw("colz");
-
-    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
-    //currentHistogram->CenterTitle();
-
-    DrawAll();
-
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
-
-    //gPad->GetListOfPrimitives()->Print();
-    TObject *obj = gPad->GetListOfPrimitives()->At(0);
-    TFrame *ftemp = (TFrame *) obj;
-    ftemp->SetBit(kCannotPick);
+    userInput.clear();
+    fDialog->CloseWindow();
 }
 
-BAMainFrame::~BAMainFrame()
-{
-   // Clean up all widgets, frames and layouthints that were used
-   Cleanup();
-}
 
 void BAMainFrame::CloseWindow()
 {

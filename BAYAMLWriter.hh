@@ -105,7 +105,6 @@ void BAYAMLWriter::Write()
 void BAYAMLWriter::WriteMetadata()
 {
     std::ofstream outputFileStream;
-    std::cout<<"outname: "<<outputFilename<<std::endl;
     outputFileStream.open(outputFilename, std::ofstream::trunc);
     outputFileStream << "metadata:" <<std::endl;
     outputFileStream << "    scanner: \""<<scannerName<<"\""<<std::endl;

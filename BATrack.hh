@@ -14,8 +14,10 @@ class BATrack
 {
     public:
         BATrack(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber);
+        BATrack() : BATrack(0,0,0,0,0) {}
         void Draw();
         int GetAcquisitionNumber();
+        void SetAcquisitionNumber(const int &acqNumber);
 
         void SetSidebandStatus();
         bool GetSidebandStatus();
@@ -27,6 +29,11 @@ class BATrack
         double GetStartFrequency();
         double GetEndTime();
         double GetEndFrequency();
+
+        void SetStartTime(const double &startTime);
+        void SetStartFrequency(const double &startFrequency);
+        void SetEndTime(const double &endTime);
+        void SetEndFrequency(const double &endFrequency);
 
     private:
         TLine trackRidge;
@@ -96,6 +103,30 @@ bool BATrack::GetSidebandStatus()
 bool BATrack::GetCurvedStatus()
 {
     return isCurved;
+}
+
+void BATrack::SetStartTime(const double &startTime)
+{
+    trackRidge.SetX1(startTime);
+}
+
+void BATrack::SetStartFrequency(const double &startFrequency)
+{
+    trackRidge.SetY1(startFrequency);
+}
+
+void BATrack::SetEndTime(const double &endTime)
+{
+    trackRidge.SetX2(endTime);
+}
+void BATrack::SetEndFrequency(const double &endFrequency)
+{
+    trackRidge.SetY2(endFrequency);
+}
+
+void BATrack::SetAcquisitionNumber(const int &acqNumber)
+{
+    acquisitionNumber = acqNumber;
 }
 
 #endif /* BATRACK_HH_ */

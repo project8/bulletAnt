@@ -14,11 +14,17 @@ class BACurve
 {
     public:
         BACurve(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber);
+        BACurve(): BACurve(0,0,0,0,0) {}
         void Draw();
         int GetAcquisitionNumber();
         double GetTime();
         double GetStartFrequency();
         double GetEndFrequency();
+
+        void SetAcquisitionNumber(const int &acqNumber);
+        void SetTime(const double &time);
+        void SetStartFrequency(const double &startFrequency);
+        void SetEndFrequency(const double &endFrequency);
 
     private:
         TLine curvedLine; //Straight Line: shows where beginning and end of curve is
@@ -35,6 +41,29 @@ BACurve::BACurve(const double &x1, const double &y1, const double &x2, const dou
 
    return;
 }
+
+void BACurve::SetAcquisitionNumber(const int &acqNumber)
+{
+    acquisitionNumber = acqNumber;
+}
+
+void BACurve::SetTime(const double &time)
+{
+    const double timeLength = 0.001; //Default length of a curve for parsing. Doesnt really matter
+    curvedLine.SetX1(time - timeLength/2.);
+    curvedLine.SetX2(time + timeLength/2.);
+}
+
+void BACurve::SetStartFrequency(const double &startFrequency)
+{
+    curvedLine.SetY1(startFrequency);
+}
+
+void BACurve::SetEndFrequency(const double &endFrequency)
+{
+    curvedLine.SetY2(endFrequency);
+}
+
 
 void BACurve::Draw()
 {
