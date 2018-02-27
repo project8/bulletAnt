@@ -46,6 +46,9 @@ class BAMainFrame : public TGMainFrame
 
         void OkayButton();
         void CancelButton();
+        Bool_t HandleKey(Event_t *event);
+        void SlideBar(TGDoubleHSlider &hSlider, bool isTimeAxis, bool positiveDirection);
+        void Zoom(TGDoubleHSlider &hSlider, bool isTimeAxis, bool zoomIn);
 
     private:
         void CreateDialog(const std::string &userPrompt);
@@ -222,6 +225,19 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     horizontalYSlider->SetPosition(50e6,65e6);
     leftButtonFrame->AddFrame(horizontalYSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
 
+    const TGWindow *main = gClient->GetRoot();
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_a), 0);
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_s), 0);
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_w), 0);
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_d), 0);
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_r), 0);
+
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_n), 0);
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_p), 0);
+
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_z), 0);
+    BindKey(main, gVirtualX->KeysymToKeycode(kKey_c), 0);
+
 
     //Finishing Touches
     // What to clean up in destructor
@@ -235,6 +251,124 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
 
     //Draw first spectrogram automatically
     DrawCurrentSpectrogram();
+}
+
+Bool_t BAMainFrame::HandleKey(Event_t *event)
+{
+   // Handle arrow and spacebar keys
+   char tmp[2];
+   unsigned keySymbol;
+   gVirtualX->LookupString(event, tmp, sizeof(tmp), keySymbol);
+
+   if (event->fType == kGKeyPress) 
+   {
+      switch ((EKeySym)keySymbol) 
+      {
+          //Refresh
+         case kKey_r:
+             DrawCurrentSpectrogram();
+             break;
+
+         case kKey_n:
+             DrawNextSpectrogram();
+             break;
+
+         case kKey_p:
+             DrawPreviousSpectrogram();
+
+         case kKey_d:
+            SlideBar(*horizontalXSlider,true, true);
+            break;
+
+         case kKey_a:
+            SlideBar(*horizontalXSlider,true, false);
+            break;
+
+         case kKey_w:
+            SlideBar(*horizontalYSlider,false, true);
+            break;
+
+         case kKey_s:
+            SlideBar(*horizontalYSlider,false, false);
+            break;
+
+         case kKey_z:
+             Zoom(*horizontalXSlider,true, true);
+             Zoom(*horizontalYSlider,false, true);
+            break;
+
+         case kKey_c:
+             Zoom(*horizontalXSlider, true, false);
+             Zoom(*horizontalYSlider, false, false);
+            break;
+
+         default:
+            return kTRUE;
+      }
+   }
+   return kTRUE;
+}
+void BAMainFrame::Zoom(TGDoubleHSlider &hSlider, bool isTimeAxis, bool zoomIn)
+{
+    double sliderBounds[2] = {hSlider.GetMinPosition(), hSlider.GetMaxPosition()};
+    double axisBounds[2]; 
+    double minLength[2] = {1e-5, 1e6};
+
+    if(isTimeAxis)
+    {
+        axisBounds[0] = 0.; axisBounds[1] = 0.01;
+    }
+    else
+    {
+        axisBounds[0] = 50.e6; axisBounds[1] = 150.e6;
+    }
+
+    double sliderLength = sliderBounds[1] - sliderBounds[0];
+
+    double sliderShift[2];
+    const double slideFraction = 0.25;
+    if(zoomIn)
+    {
+        sliderShift[0] =  slideFraction * sliderLength;
+        sliderShift[1] = -slideFraction * sliderLength;
+    }
+    else
+    {
+        sliderShift[0] = TMath::Max(axisBounds[0] - sliderBounds[0], -slideFraction * sliderLength);
+        sliderShift[1] = TMath::Min(axisBounds[1] - sliderBounds[1], slideFraction * sliderLength);
+    }
+
+    hSlider.SetPosition(sliderBounds[0] + sliderShift[0], sliderBounds[1] + sliderShift[1]);
+    DoSlider();
+
+}
+
+void BAMainFrame::SlideBar(TGDoubleHSlider &hSlider, bool isTimeAxis, bool positiveDirection)
+{
+    double sliderBounds[2] = {hSlider.GetMinPosition(), hSlider.GetMaxPosition()};
+    double axisBounds[2]; 
+
+    if(isTimeAxis)
+    {
+        axisBounds[0] = 0.; axisBounds[1] = 0.01;
+    }
+    else
+    {
+        axisBounds[0] = 50.e6; axisBounds[1] = 150.e6;
+    }
+
+    double sliderLength = sliderBounds[1] - sliderBounds[0];
+
+    double sliderShift;
+    const double slideFraction = 0.5;
+    if(positiveDirection)
+        sliderShift = TMath::Min(axisBounds[1] - sliderBounds[1], slideFraction * sliderLength);
+    else
+        sliderShift = TMath::Max(axisBounds[0] - sliderBounds[0], -slideFraction * sliderLength);
+
+    hSlider.SetPosition(sliderBounds[0] + sliderShift, sliderBounds[1] + sliderShift);
+    DoSlider();
+
 }
 
 BAMainFrame::~BAMainFrame()
@@ -457,7 +591,6 @@ void BAMainFrame::DrawPreviousSpectrogram()
         DrawCurrentSpectrogram();
         SetButtonStatus();
     }
-
 }
 
 void BAMainFrame::OkayButton()

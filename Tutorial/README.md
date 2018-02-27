@@ -46,7 +46,7 @@ autogenerate the correct filename for DIRAC, as well as the metadata. Once you h
 "Write to YAML" button, and pick up later by pressing the "Load From YAML" button, which launches a file dialog of your directory system.
 
 **Refresh Plot:**
- Redraws plot, zooms in to lower left hand corner. May be removed in future versions.
+ Redraws plot, zooms in to lower left hand corner.
 
 **Sliders:**
  Pair of double sliders, for the X and Y axes, respectively. Grabbing the center of the slider button and dragging will slide your focus along the XY axes. If you grab the
@@ -57,5 +57,20 @@ autogenerate the correct filename for DIRAC, as well as the metadata. Once you h
  Navigation bars. Located in the lower panel.
 
 **Exit:**
- Exits the application. Note that if you exit without writing, your work is gone forever, so don't do it.
+ Exits the application. Note that if you exit without writing, your work is gone forever, and you will need to redo the handscanning for that file.
+
+**Keybindings:**
+Meant to limit the amount of time you spend moving the mouse. Highly recommended.
+
+ w : Scroll up in spectrogram
+ s : Scroll down
+ a : Scroll left
+ d : Scroll right
+
+ r : Refresh plot
+ n : Go the the previous spectrogram
+ p : Go the the next spectrogram
+
+ z : Zoom in
+ c : Zoom out
 
