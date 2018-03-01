@@ -72,6 +72,7 @@ class BAMainFrame : public TGMainFrame
 
         TGDoubleHSlider *horizontalXSlider;
         TGDoubleHSlider *horizontalYSlider;
+        TGDoubleHSlider *horizontalZSlider;
 
         TGHProgressBar *progressBar;
 
@@ -224,6 +225,16 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     horizontalYSlider->SetRange(50e6,150e6);
     horizontalYSlider->SetPosition(50e6,65e6);
     leftButtonFrame->AddFrame(horizontalYSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
+
+    TGLabel *zSliderLabel = new TGLabel(leftButtonFrame, "Z Axis (Power Cut)");
+    leftButtonFrame->AddFrame(zSliderLabel, new TGLayoutHints(kLHintsExpandX | kLHintsTop, 5, 5, 2, 2));
+
+    const int horizontalZSliderID = 47;
+    horizontalZSlider = new TGDoubleHSlider(leftButtonFrame,150,kDoubleScaleBoth,horizontalZSliderID);
+    horizontalZSlider->Connect("PositionChanged()", "BAMainFrame", this, "DoSlider()");
+    horizontalZSlider->SetRange(0.,0.1);
+    horizontalZSlider->SetPosition(0.06,0.1);
+    leftButtonFrame->AddFrame(horizontalZSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
 
     const TGWindow *main = gClient->GetRoot();
     BindKey(main, gVirtualX->KeysymToKeycode(kKey_a), 0);
@@ -511,6 +522,7 @@ void BAMainFrame::DoSlider()
 {
     currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
     currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
+    currentHistogram->GetZaxis()->SetRangeUser(horizontalZSlider->GetMinPosition(),horizontalZSlider->GetMaxPosition());
     currentHistogram->Draw("colz");
 
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
@@ -539,14 +551,16 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
 
     //By default, have zoomed in view of spectrogram
-    currentHistogram->GetXaxis()->SetRangeUser(0,0.0025);
-    currentHistogram->GetYaxis()->SetRangeUser(50e6,65e6);
+    currentHistogram->GetXaxis()->SetRangeUser(0,0.01);
+    currentHistogram->GetYaxis()->SetRangeUser(50e6,150e6);
+    currentHistogram->GetZaxis()->SetRangeUser(0.06,0.1);
 
     currentHistogram->SetBit(kCannotPick);
 
 
-    horizontalXSlider->SetPosition(0,0.0025);
-    horizontalYSlider->SetPosition(50e6,65e6);
+    horizontalXSlider->SetPosition(0,0.01);
+    horizontalYSlider->SetPosition(50e6,150e6);
+    horizontalZSlider->SetPosition(0.06,0.1);
 
     DrawAll();
 

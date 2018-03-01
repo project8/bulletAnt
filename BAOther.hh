@@ -40,7 +40,7 @@ BAOther::BAOther(const double &x, const double &y,const int &acqNumber, const st
     acquisitionNumber(acqNumber),
     userComment(sInput)
 {
-    featurePosition.SetMarkerColor(kWhite);
+    featurePosition.SetMarkerColor(2);
 
 }
 

@@ -62,15 +62,15 @@ autogenerate the correct filename for DIRAC, as well as the metadata. Once you h
 **Keybindings:**
 Meant to limit the amount of time you spend moving the mouse. Highly recommended.
 
- w : Scroll up in spectrogram
- s : Scroll down
- a : Scroll left
- d : Scroll right
-
- r : Refresh plot
- n : Go the the previous spectrogram
- p : Go the the next spectrogram
-
- z : Zoom in
- c : Zoom out
+ w : Scroll up in spectrogram  
+ s : Scroll down  
+ a : Scroll left  
+ d : Scroll right  
+  
+ r : Refresh plot  
+ n : Go the the previous spectrogram  
+ p : Go the the next spectrogram  
+   
+ z : Zoom in  
+ c : Zoom out  
 
