@@ -58,6 +58,7 @@ class BAMainFrame : public TGMainFrame
         void DrawAll();
         void SetButtonStatus();
 
+        void ResetAxes();
 
         void CloseWindow();
 
@@ -82,6 +83,8 @@ class BAMainFrame : public TGMainFrame
         TGCheckButton *curvedButton;
 
         int acquisitionIndex;
+
+        double xRange[2], yRange[2], zRange[2];
 
         std::vector<std::string> histogramNames;
 
@@ -212,8 +215,6 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     const int horizontalXSliderID = 45;
     horizontalXSlider = new TGDoubleHSlider(leftButtonFrame,150,kDoubleScaleBoth,horizontalXSliderID);
     horizontalXSlider->Connect("PositionChanged()", "BAMainFrame", this, "DoSlider()");
-    horizontalXSlider->SetRange(0,0.01);
-    horizontalXSlider->SetPosition(0,0.0025);
     leftButtonFrame->AddFrame(horizontalXSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15,15, 2, 20));
 
     TGLabel *ySliderLabel = new TGLabel(leftButtonFrame, "Y Axis (Frequency)");
@@ -222,8 +223,6 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     const int horizontalYSliderID = 46;
     horizontalYSlider = new TGDoubleHSlider(leftButtonFrame,150,kDoubleScaleBoth,horizontalYSliderID);
     horizontalYSlider->Connect("PositionChanged()", "BAMainFrame", this, "DoSlider()");
-    horizontalYSlider->SetRange(50e6,150e6);
-    horizontalYSlider->SetPosition(50e6,65e6);
     leftButtonFrame->AddFrame(horizontalYSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
 
     TGLabel *zSliderLabel = new TGLabel(leftButtonFrame, "Z Axis (Power Cut)");
@@ -232,8 +231,6 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     const int horizontalZSliderID = 47;
     horizontalZSlider = new TGDoubleHSlider(leftButtonFrame,150,kDoubleScaleBoth,horizontalZSliderID);
     horizontalZSlider->Connect("PositionChanged()", "BAMainFrame", this, "DoSlider()");
-    horizontalZSlider->SetRange(0.,0.1);
-    horizontalZSlider->SetPosition(0.06,0.1);
     leftButtonFrame->AddFrame(horizontalZSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
 
     const TGWindow *main = gClient->GetRoot();
@@ -327,11 +324,11 @@ void BAMainFrame::Zoom(TGDoubleHSlider &hSlider, bool isTimeAxis, bool zoomIn)
 
     if(isTimeAxis)
     {
-        axisBounds[0] = 0.; axisBounds[1] = 0.01;
+        axisBounds[0] = xRange[0]; axisBounds[1] = xRange[1];
     }
     else
     {
-        axisBounds[0] = 50.e6; axisBounds[1] = 150.e6;
+        axisBounds[0] = yRange[0]; axisBounds[1] = yRange[1];
     }
 
     double sliderLength = sliderBounds[1] - sliderBounds[0];
@@ -361,11 +358,11 @@ void BAMainFrame::SlideBar(TGDoubleHSlider &hSlider, bool isTimeAxis, bool posit
 
     if(isTimeAxis)
     {
-        axisBounds[0] = 0.; axisBounds[1] = 0.01;
+        axisBounds[0] = xRange[0]; axisBounds[1] = xRange[1];
     }
     else
     {
-        axisBounds[0] = 50.e6; axisBounds[1] = 150.e6;
+        axisBounds[0] = yRange[0]; axisBounds[1] = yRange[1];
     }
 
     double sliderLength = sliderBounds[1] - sliderBounds[0];
@@ -523,7 +520,7 @@ void BAMainFrame::DoSlider()
     currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
     currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
     currentHistogram->GetZaxis()->SetRangeUser(horizontalZSlider->GetMinPosition(),horizontalZSlider->GetMaxPosition());
-    currentHistogram->Draw("colz");
+    currentHistogram->Draw("col");
 
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
     //currentHistogram->CenterTitle();
@@ -541,26 +538,33 @@ void BAMainFrame::DoSlider()
     ftemp->SetBit(kCannotPick);
 }
 
+void BAMainFrame::ResetAxes()
+{
+    const double zCutFraction = 0.65; //fraction of power to cut out by default
+    currentHistogram->GetXaxis()->SetRangeUser(xRange[0], xRange[1]);
+    currentHistogram->GetYaxis()->SetRangeUser(yRange[0], yRange[1]);
+    currentHistogram->GetZaxis()->SetRangeUser(zCutFraction* zRange[1], zRange[1]);
+
+    horizontalXSlider->SetRange(xRange[0],xRange[1]);
+    horizontalYSlider->SetRange(yRange[0], yRange[1]);
+    horizontalZSlider->SetRange(zRange[0], zRange[1]);
+
+    horizontalXSlider->SetPosition(xRange[0],xRange[1]);
+    horizontalYSlider->SetPosition(yRange[0], yRange[1]);
+    horizontalZSlider->SetPosition(zCutFraction * zRange[1], zRange[1]);
+}
+
 void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
 {
     std::string currentHistogramName = histogramNames[acquisitionIndex];
     TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
     currentHistogram = (TH2D*) fileObject;
-    currentHistogram->Draw("colz");
+    currentHistogram->Draw("col");
 
     currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
-
-    //By default, have zoomed in view of spectrogram
-    currentHistogram->GetXaxis()->SetRangeUser(0,0.01);
-    currentHistogram->GetYaxis()->SetRangeUser(50e6,150e6);
-    currentHistogram->GetZaxis()->SetRangeUser(0.06,0.1);
-
     currentHistogram->SetBit(kCannotPick);
 
-
-    horizontalXSlider->SetPosition(0,0.01);
-    horizontalYSlider->SetPosition(50e6,150e6);
-    horizontalZSlider->SetPosition(0.06,0.1);
+    ResetAxes();
 
     DrawAll();
 
@@ -723,10 +727,6 @@ const char *BAMainFrame::LoadFileDialog()
    return fi.fFilename;
 }
 
-
-
-
-
 void BAMainFrame::SetupHistogramVector()
 {
     std::string currentHistogramName;
@@ -743,6 +743,16 @@ void BAMainFrame::SetupHistogramVector()
 
         ++j;
     }
+
+    //Assumes the range of all histograms is the same
+    TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
+    currentHistogram = (TH2D*) fileObject;
+    xRange[0] = currentHistogram->GetXaxis()->GetXmin();
+    xRange[1] = currentHistogram->GetXaxis()->GetXmax();
+    yRange[0] = currentHistogram->GetYaxis()->GetXmin();
+    yRange[1] = currentHistogram->GetYaxis()->GetXmax();
+    zRange[0] = currentHistogram->GetMinimum();
+    zRange[1] = currentHistogram->GetMaximum();
 
 }
 
