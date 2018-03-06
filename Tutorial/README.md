@@ -49,7 +49,7 @@ autogenerate the correct filename for DIRAC, as well as the metadata. Once you h
  Redraws plot, zooms in to lower left hand corner.
 
 **Sliders:**
- Pair of double sliders, for the X and Y axes, respectively. Grabbing the center of the slider button and dragging will slide your focus along the XY axes. If you grab the
+ Three ouble sliders, for the X,Y, and Z axes, respectively. Grabbing the center of the slider button and dragging will slide your focus along the axis. If you grab the
  edge of the slider button and drag, you can zoom in or out. By default, the spectrogram is zoomed in as a) operations are quicker on zoomed-in plots, as there is less data, and
  b) when you create tracks, try to really zoom in to get the best accuracy you can
 
