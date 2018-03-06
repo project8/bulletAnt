@@ -92,7 +92,7 @@ double BACurve::GetEndFrequency()
 
 bool BACurve::IsValid()
 {
-    return ((curvedLine.GetX1() > 0) && (curvedLine.GetX2()>0));
+    return ((curvedLine.GetX1() > 0) || (curvedLine.GetX2()>0));
 }
 
 #endif /* BACURVE_HH_ */

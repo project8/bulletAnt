@@ -133,7 +133,7 @@ void BATrack::SetAcquisitionNumber(const int &acqNumber)
 
 bool BATrack::IsValid()
 {
-    return ((GetStartTime() > 0) && (GetEndTime() > 0));
+    return ((GetStartTime() > 0) || (GetEndTime() > 0));
 }
 
 #endif /* BATRACK_HH_ */

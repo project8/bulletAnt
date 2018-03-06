@@ -81,7 +81,8 @@ void BAYAMLReader::ReadTracks()
 
     while (std::getline(fileStream, currentLine)) 
     {
-       if (currentLine.find("-") != std::string::npos)
+        std::cout<<currentLine<<std::endl;
+       if (currentLine.find("   - ") != std::string::npos)
        {
            allTracks.push_back(BATrack());
        }

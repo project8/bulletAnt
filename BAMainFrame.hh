@@ -38,6 +38,8 @@ class BAMainFrame : public TGMainFrame
         void WriteToYAML();
         void LoadFromYAML();
 
+        void ExitApplication();
+
         void DoSlider();
 
         void DrawCurrentSpectrogram();
@@ -150,8 +152,9 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     nextSpectrogramButton->Connect("Clicked()", "BAMainFrame", this, "DrawNextSpectrogram()");
     nextSpectrogramButton->SetToolTipText("Click on the button to save the application as C++ macro");
 
-    TGTextButton *exit = new TGTextButton(cframe2, "&Exit ","gApplication->Terminate(0)");
+    TGTextButton *exit = new TGTextButton(cframe2, "&Exit");
     cframe2->AddFrame(exit, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 2, 0, 2, 2));
+    exit->Connect("Clicked()", "BAMainFrame", this, "ExitApplication()");
     vframe->AddFrame(cframe2, new TGLayoutHints(kLHintsExpandX, 2, 2, 5, 1));
     AddFrame(vframe, new TGLayoutHints(kLHintsExpandX, 2, 2, 5, 1));
 
@@ -801,6 +804,14 @@ void BAMainFrame::SetButtonStatus()
             break;
         }
     }
+}
+
+void BAMainFrame::ExitApplication()
+{
+    int returnValue;
+    new TGMsgBox(gClient->GetRoot(), fHorizontalFrame, "Warning", "Are sure you want to quit the application?\n (Press \"Write\" to save your work)", kMBIconExclamation, kMBOk | kMBCancel, &returnValue);
+    if(returnValue == kMBOk)
+        gApplication->Terminate(0);
 }
 
 

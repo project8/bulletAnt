@@ -93,8 +93,9 @@ std::string BAYAMLWriter::GetDate()
 
 void BAYAMLWriter::Write()
 {
-    GetOutputFilename();
-    GetRunID();
+    outputFilename = "handscan.yaml";
+    //GetOutputFilename();
+    //GetRunID();
 
     WriteMetadata();
     WriteTracks();
