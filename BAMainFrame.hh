@@ -18,6 +18,8 @@
 #include <TRootEmbeddedCanvas.h>
 #include <TH2D.h>
 
+#include "BASpectrogram.hh"
+
 #include "BAYAMLWriter.hh"
 #include "BAYAMLReader.hh"
 
@@ -26,7 +28,6 @@ class BAMainFrame : public TGMainFrame
     public:
         BAMainFrame(const TGWindow *p, std::string spectrogramFilename, UInt_t windowWidth, UInt_t windowHeight);
         virtual ~BAMainFrame();
-
 
         void CreateTrack();
         void CreateCurve();
@@ -71,7 +72,7 @@ class BAMainFrame : public TGMainFrame
         std::vector<BAOther> allOthers;
 
         TFile *spectrogramFile;
-        TH2D *currentHistogram;
+        BASpectrogram *currentSpectrogram;
 
         TGDoubleHSlider *horizontalXSlider;
         TGDoubleHSlider *horizontalYSlider;
@@ -106,6 +107,8 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
 {
 
     spectrogramFile = new TFile(spectrogramFilename.c_str());
+    currentSpectrogram = new BASpectrogram();
+
     SetupHistogramVector();
 
     // Create pair of vertical frames, in global frame object
@@ -166,7 +169,8 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     progressBar->ShowPosition();
     leftButtonFrame->AddFrame(progressBar, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 15,15,3,4));
     progressBar->SetBarColor("green");
-    progressBar->SetRange(0,histogramNames.size()-1);
+    progressBar->SetRange(0,histogramNames.size());
+    progressBar->Increment(1);
 
     TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
     createTrackButton->Connect("Clicked()","BAMainFrame",this,"CreateTrack()");
@@ -266,8 +270,7 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
 
 Bool_t BAMainFrame::HandleKey(Event_t *event)
 {
-   // Handle arrow and spacebar keys
-   char tmp[2];
+   char tmp[5]; 
    unsigned keySymbol;
    gVirtualX->LookupString(event, tmp, sizeof(tmp), keySymbol);
 
@@ -520,13 +523,14 @@ void BAMainFrame::LoadFromYAML()
 
 void BAMainFrame::DoSlider()
 {
-    currentHistogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
-    currentHistogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
-    currentHistogram->GetZaxis()->SetRangeUser(horizontalZSlider->GetMinPosition(),horizontalZSlider->GetMaxPosition());
-    currentHistogram->Draw("col");
+    currentSpectrogram->GetXaxis()->SetRangeUser(horizontalXSlider->GetMinPosition(),horizontalXSlider->GetMaxPosition());
+    currentSpectrogram->GetYaxis()->SetRangeUser(horizontalYSlider->GetMinPosition(),horizontalYSlider->GetMaxPosition());
+    if(!currentSpectrogram->GetSparsity())
+        currentSpectrogram->GetZaxis()->SetRangeUser(horizontalZSlider->GetMinPosition(),horizontalZSlider->GetMaxPosition());
 
-    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
-    //currentHistogram->CenterTitle();
+    currentSpectrogram->Draw();
+
+    currentSpectrogram->SetTitle(histogramNames[acquisitionIndex].c_str());
 
     DrawAll();
 
@@ -543,10 +547,11 @@ void BAMainFrame::DoSlider()
 
 void BAMainFrame::ResetAxes()
 {
-    const double zCutFraction = 0.65; //fraction of power to cut out by default
-    currentHistogram->GetXaxis()->SetRangeUser(xRange[0], xRange[1]);
-    currentHistogram->GetYaxis()->SetRangeUser(yRange[0], yRange[1]);
-    currentHistogram->GetZaxis()->SetRangeUser(zCutFraction* zRange[1], zRange[1]);
+    const double zCutFraction = 0.45; //fraction of power to cut out by default
+    currentSpectrogram->GetXaxis()->SetRangeUser(xRange[0], xRange[1]);
+    currentSpectrogram->GetYaxis()->SetRangeUser(yRange[0], yRange[1]);
+    if(!currentSpectrogram->GetSparsity())
+        currentSpectrogram->GetZaxis()->SetRangeUser(zCutFraction* zRange[1], zRange[1]);
 
     horizontalXSlider->SetRange(xRange[0],xRange[1]);
     horizontalYSlider->SetRange(yRange[0], yRange[1]);
@@ -561,11 +566,10 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
 {
     std::string currentHistogramName = histogramNames[acquisitionIndex];
     TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
-    currentHistogram = (TH2D*) fileObject;
-    currentHistogram->Draw("col");
+    currentSpectrogram->SetData(fileObject);
 
-    currentHistogram->SetTitle(histogramNames[acquisitionIndex].c_str());
-    currentHistogram->SetBit(kCannotPick);
+    currentSpectrogram->Draw();
+    currentSpectrogram->SetTitle(histogramNames[acquisitionIndex].c_str());
 
     ResetAxes();
 
@@ -576,6 +580,7 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     fCanvas->cd();
     fCanvas->Update();
 
+    //FIX ME!!!
     TObject *obj = gPad->GetListOfPrimitives()->At(0);
     TFrame *ftemp = (TFrame *) obj;
     ftemp->SetBit(kCannotPick);
@@ -749,13 +754,21 @@ void BAMainFrame::SetupHistogramVector()
 
     //Assumes the range of all histograms is the same
     TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
-    currentHistogram = (TH2D*) fileObject;
-    xRange[0] = currentHistogram->GetXaxis()->GetXmin();
-    xRange[1] = currentHistogram->GetXaxis()->GetXmax();
-    yRange[0] = currentHistogram->GetYaxis()->GetXmin();
-    yRange[1] = currentHistogram->GetYaxis()->GetXmax();
-    zRange[0] = currentHistogram->GetMinimum();
-    zRange[1] = currentHistogram->GetMaximum();
+
+    if (fileObject->InheritsFrom("TH2"))
+        currentSpectrogram->SetDataSparsity(false);
+
+    else if (fileObject->InheritsFrom("TGraph"))
+        currentSpectrogram->SetDataSparsity(true);
+
+    currentSpectrogram->SetData(fileObject);
+    
+    xRange[0] = currentSpectrogram->GetXaxis()->GetXmin();
+    xRange[1] = currentSpectrogram->GetXaxis()->GetXmax();
+    yRange[0] = currentSpectrogram->GetYaxis()->GetXmin();
+    yRange[1] = currentSpectrogram->GetYaxis()->GetXmax();
+    zRange[0] = currentSpectrogram->GetMinimum();
+    zRange[1] = currentSpectrogram->GetMaximum();
 
 }
 
@@ -809,7 +822,7 @@ void BAMainFrame::SetButtonStatus()
 void BAMainFrame::ExitApplication()
 {
     int returnValue;
-    new TGMsgBox(gClient->GetRoot(), fHorizontalFrame, "Warning", "Are sure you want to quit the application?\n (Press \"Write\" to save your work)", kMBIconExclamation, kMBOk | kMBCancel, &returnValue);
+    new TGMsgBox(gClient->GetRoot(), fHorizontalFrame, "Warning", "Exiting without writing to YAML will lose your progress!\n Do you still want to exit?", kMBIconExclamation, kMBOk | kMBCancel, &returnValue);
     if(returnValue == kMBOk)
         gApplication->Terminate(0);
 }
