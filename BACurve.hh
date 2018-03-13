@@ -39,7 +39,7 @@ BACurve::BACurve(const double &x1, const double &y1, const double &x2, const dou
     acquisitionNumber(acqNumber)
 {
    curvedLine.SetLineWidth(1);
-   curvedLine.SetLineColor(6);
+   curvedLine.SetLineColorAlpha(6, 0.5);
 
    return;
 }

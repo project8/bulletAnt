@@ -51,7 +51,7 @@ BATrack::BATrack(const double &x1, const double &y1, const double &x2, const dou
     acquisitionNumber(acqNumber)
 {
    trackRidge.SetLineWidth(1);
-   trackRidge.SetLineColor(2);
+   trackRidge.SetLineColorAlpha(2,0.5);
 
    return;
 }
