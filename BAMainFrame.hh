@@ -564,11 +564,6 @@ void BAMainFrame::DoSlider()
 
     DrawAll();
 
-
-    //gPad->GetListOfPrimitives()->Print();
-    TObject *obj = gPad->GetListOfPrimitives()->At(0);
-    TFrame *ftemp = (TFrame *) obj;
-    ftemp->SetBit(kCannotPick);
 }
 
 void BAMainFrame::ResetAxes()
@@ -623,11 +618,6 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
 
     DrawAll();
 
-
-    //FIX ME!!!
-    TObject *obj = gPad->GetListOfPrimitives()->At(0);
-    TFrame *ftemp = (TFrame *) obj;
-    ftemp->SetBit(kCannotPick);
 
 }
 
@@ -844,11 +834,15 @@ void BAMainFrame::DrawAll()
         }
     }
 
-
     //Gets current canvas and updates after button press
     TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
     fCanvas->cd();
     fCanvas->Update();
+
+    TObject *obj = gPad->GetListOfPrimitives()->At(0);
+    TFrame *ftemp = (TFrame *) obj;
+    ftemp->SetBit(kCannotPick);
+
 }
 
 
