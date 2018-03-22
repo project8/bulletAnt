@@ -27,21 +27,30 @@ class BAOther
         void SetFrequency(const double &frequency);
         void SetComment(const std::string &comment);
 
-        bool IsValid();
+        void SetWriteStatus(const bool&);
+        bool GetWriteStatus();
+        void SetOpacity(const double &opacity);
 
     private:
         TMarker featurePosition;
         std::string userComment;
         int acquisitionNumber;
+        bool writeStatus;
 };
 
 BAOther::BAOther(const double &x, const double &y,const int &acqNumber, const std::string &sInput): 
     featurePosition(TMarker(x,y,8)), 
     acquisitionNumber(acqNumber),
+    writeStatus(true),
     userComment(sInput)
 {
     featurePosition.SetMarkerColorAlpha(2,0.5);
 
+}
+
+void BAOther::SetOpacity(const double &opacity)
+{
+    featurePosition.SetMarkerColorAlpha(2,opacity);
 }
 
 std::string BAOther::GetComment()
@@ -87,9 +96,16 @@ void BAOther::SetComment(const std::string &comment)
     userComment = comment;
 }
 
-bool BAOther::IsValid()
+bool BAOther::GetWriteStatus()
 {
-    return GetTime() > 0;
+    return writeStatus;
 }
+
+void BAOther::SetWriteStatus(const bool &s)
+{
+    writeStatus = s;
+}
+
+
 
 #endif /* BAOTHER_HH_ */

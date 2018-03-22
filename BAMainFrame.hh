@@ -22,6 +22,7 @@
 
 #include "BAYAMLWriter.hh"
 #include "BAYAMLReader.hh"
+#include "BATreeReader.hh"
 
 class BAMainFrame : public TGMainFrame 
 {
@@ -53,6 +54,8 @@ class BAMainFrame : public TGMainFrame
         void SlideBar(TGDoubleHSlider &hSlider, bool isTimeAxis, bool positiveDirection);
         void Zoom(TGDoubleHSlider &hSlider, bool isTimeAxis, bool zoomIn);
 
+        void SetOpacity(int alpha);
+
     private:
         void CreateDialog(const std::string &userPrompt);
         const char *LoadFileDialog();
@@ -62,6 +65,7 @@ class BAMainFrame : public TGMainFrame
         void SetButtonStatus();
 
         void ResetAxes();
+        void SetWriteStatus();
 
         void CloseWindow();
 
@@ -240,6 +244,16 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     horizontalZSlider->Connect("PositionChanged()", "BAMainFrame", this, "DoSlider()");
     leftButtonFrame->AddFrame(horizontalZSlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15, 15, 2, 20));
 
+    TGLabel *opacitySliderLabel = new TGLabel(leftButtonFrame, "Track Opacity");
+    leftButtonFrame->AddFrame(opacitySliderLabel, new TGLayoutHints(kLHintsExpandX | kLHintsTop, 5, 5, 2, 2));
+
+    const int horizontalOpacitySliderID = 48;
+    TGHSlider *opacitySlider = new TGHSlider(leftButtonFrame,150,kSlider1|kScaleDownRight,horizontalOpacitySliderID);
+    opacitySlider->Connect("PositionChanged(int)", "BAMainFrame", this, "SetOpacity(int)");
+    opacitySlider->SetRange(0,100);
+    opacitySlider->SetPosition(50);
+    leftButtonFrame->AddFrame(opacitySlider, new TGLayoutHints(kLHintsTop | kLHintsExpandX, 15,15, 2, 20));
+
     const TGWindow *main = gClient->GetRoot();
     BindKey(main, gVirtualX->KeysymToKeycode(kKey_a), 0);
     BindKey(main, gVirtualX->KeysymToKeycode(kKey_s), 0);
@@ -322,6 +336,23 @@ Bool_t BAMainFrame::HandleKey(Event_t *event)
    }
    return kTRUE;
 }
+
+void BAMainFrame::SetOpacity(int alpha)
+{
+    const double effectiveOpacity  = alpha / 100.;
+
+    for(int i=0;i<allTracks.size();++i)
+        allTracks[i].SetOpacity(effectiveOpacity);
+
+    for(int i=0;i<allCurves.size();++i)
+        allCurves[i].SetOpacity(effectiveOpacity);
+
+    for(int i=0;i<allOthers.size();++i)
+        allOthers[i].SetOpacity(effectiveOpacity);
+
+    DrawAll();
+}
+
 void BAMainFrame::Zoom(TGDoubleHSlider &hSlider, bool isTimeAxis, bool zoomIn)
 {
     double sliderBounds[2] = {hSlider.GetMinPosition(), hSlider.GetMaxPosition()};
@@ -408,11 +439,6 @@ void BAMainFrame::CreateTrack()
 
     sidebandButton->SetState(kButtonUp);
     curvedButton->SetState(kButtonUp);
-
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
 }
 
 void BAMainFrame::CreateCurve()
@@ -429,10 +455,6 @@ void BAMainFrame::CreateCurve()
 
     DrawAll();
 
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
 }
 
 void BAMainFrame::CreateOther()
@@ -455,10 +477,6 @@ void BAMainFrame::CreateOther()
 
         DrawAll();
 
-        //Gets current canvas and updates after button press
-        TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-        fCanvas->cd();
-        fCanvas->Update();
     }
 }
 
@@ -496,6 +514,9 @@ void BAMainFrame::WriteToYAML()
     CreateDialog(userPrompt);
     std::string scannerName = userInput;
     userInput.clear();
+
+    SetWriteStatus();
+
     if(!scannerName.empty())
     {
         BAYAMLWriter writeYAML(allTracks,allCurves,allOthers, spectrogramFilename, scannerName);
@@ -510,12 +531,21 @@ void BAMainFrame::LoadFromYAML()
     if(fileCharacters)
     {
         std::string loadingFilename = fileCharacters;
-        BAYAMLReader yamlReader(loadingFilename);
-        yamlReader.Read();
+        if (loadingFilename.find(".yaml") != std::string::npos)
+        {
+            BAYAMLReader yamlReader(loadingFilename);
+            yamlReader.Read();
 
-        allTracks = yamlReader.GetTracks();
-        allCurves = yamlReader.GetCurves(); 
-        allOthers = yamlReader.GetOthers();
+            allTracks = yamlReader.GetTracks();
+            allCurves = yamlReader.GetCurves(); 
+            allOthers = yamlReader.GetOthers();
+        }
+        else if (loadingFilename.find(".root") != std::string::npos)
+        {
+            BATreeReader treeReader(loadingFilename);
+            treeReader.Read();
+            allTracks = treeReader.GetTracks();
+        }
 
         DrawCurrentSpectrogram();
     }
@@ -534,10 +564,6 @@ void BAMainFrame::DoSlider()
 
     DrawAll();
 
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
 
     //gPad->GetListOfPrimitives()->Print();
     TObject *obj = gPad->GetListOfPrimitives()->At(0);
@@ -562,6 +588,26 @@ void BAMainFrame::ResetAxes()
     horizontalZSlider->SetPosition(zCutFraction * zRange[1], zRange[1]);
 }
 
+void BAMainFrame::SetWriteStatus()
+{
+    for(int i=0;i<allTracks.size();++i)
+    {
+        if(allTracks[i].GetStartTime() < xRange[0] && allTracks[i].GetEndTime() < xRange[0] && allTracks[i].GetAcquisitionNumber() == acquisitionIndex )
+            allTracks[i].SetWriteStatus(false);
+    }
+
+    for(int i=0;i<allCurves.size();++i)
+    {
+        if(allCurves[i].GetTime() < xRange[0] && allCurves[i].GetAcquisitionNumber() == acquisitionIndex)
+            allCurves[i].SetWriteStatus(false);
+    }
+    for(int i=0;i<allOthers.size();++i)
+    {
+        if(allOthers[i].GetTime() < xRange[0] && allOthers[i].GetAcquisitionNumber() == acquisitionIndex)
+            allOthers[i].SetWriteStatus(false);
+    }
+}
+
 void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
 {
     std::string currentHistogramName = histogramNames[acquisitionIndex];
@@ -571,14 +617,12 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
     currentSpectrogram->Draw();
     currentSpectrogram->SetTitle(histogramNames[acquisitionIndex].c_str());
 
+    SetWriteStatus();
+
     ResetAxes();
 
     DrawAll();
 
-    //Gets current canvas and updates after button press
-    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
-    fCanvas->cd();
-    fCanvas->Update();
 
     //FIX ME!!!
     TObject *obj = gPad->GetListOfPrimitives()->At(0);
@@ -726,7 +770,7 @@ void BAMainFrame::CreateDialog(const std::string &userPrompt )
 const char *BAMainFrame::LoadFileDialog()
 {
 
-   const char *gSaveAsTypes[] = { "YAML files","*.yaml", 0,0 };
+   const char *gSaveAsTypes[] = { "YAML files","*.yaml", "ROOT Files", "*.root",0,0 };
 
    static TGFileInfo fi;
    fi.fFileTypes = gSaveAsTypes;
@@ -774,6 +818,8 @@ void BAMainFrame::SetupHistogramVector()
 
 void BAMainFrame::DrawAll()
 {
+    currentSpectrogram->Draw();
+
     for(int i=0;i<allTracks.size();++i)
     {
         if(allTracks[i].GetAcquisitionNumber() == acquisitionIndex)
@@ -797,6 +843,12 @@ void BAMainFrame::DrawAll()
             allOthers[i].Draw();
         }
     }
+
+
+    //Gets current canvas and updates after button press
+    TCanvas *fCanvas = fEmbeddedCanvas->GetCanvas();
+    fCanvas->cd();
+    fCanvas->Update();
 }
 
 

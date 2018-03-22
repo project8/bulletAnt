@@ -35,12 +35,16 @@ class BATrack
         void SetEndTime(const double &endTime);
         void SetEndFrequency(const double &endFrequency);
 
-        bool IsValid();
+        void SetWriteStatus(const bool&);
+        bool GetWriteStatus();
+
+        void SetOpacity(const double &opacity);
 
     private:
         TLine trackRidge;
         bool isSideband;
         bool isCurved;
+        bool writeStatus;
         int acquisitionNumber;
 };
 
@@ -48,12 +52,18 @@ BATrack::BATrack(const double &x1, const double &y1, const double &x2, const dou
     trackRidge(TLine(x1,y1,x2,y2)), 
     isSideband(false), 
     isCurved(false), 
+    writeStatus(true),
     acquisitionNumber(acqNumber)
 {
    trackRidge.SetLineWidth(1);
    trackRidge.SetLineColorAlpha(2,0.5);
 
    return;
+}
+
+void BATrack::SetOpacity(const double &opacity)
+{
+   trackRidge.SetLineColorAlpha(2,opacity);
 }
 
 void BATrack::Draw()
@@ -131,9 +141,15 @@ void BATrack::SetAcquisitionNumber(const int &acqNumber)
     acquisitionNumber = acqNumber;
 }
 
-bool BATrack::IsValid()
+bool BATrack::GetWriteStatus()
 {
-    return ((GetStartTime() > 0) || (GetEndTime() > 0));
+    return writeStatus;
 }
+
+void BATrack::SetWriteStatus(const bool &s)
+{
+    writeStatus = s;
+}
+
 
 #endif /* BATRACK_HH_ */

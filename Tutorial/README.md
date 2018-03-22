@@ -53,6 +53,8 @@ autogenerate the correct filename for DIRAC, as well as the metadata. Once you h
  edge of the slider button and drag, you can zoom in or out. By default, the spectrogram is zoomed in as a) operations are quicker on zoomed-in plots, as there is less data, and
  b) when you create tracks, try to really zoom in to get the best accuracy you can
 
+There is now an additional slider which sets the opacity of the lines, and other objects you create on the spectrogram, to more easily see the underlying spectrum.
+
 **Previous/ Next Spectrogram:**
  Navigation bars. Located in the lower panel.
 

@@ -127,7 +127,7 @@ void BAYAMLWriter::WriteTracks()
         
         for(int i=0;i<allTracks.size();++i)
         {
-            if(allTracks[i].IsValid())
+            if(allTracks[i].GetWriteStatus())
             {
                 outputFileStream << "    - start_f: "<<allTracks[i].GetStartFrequency() <<std::endl;
                 outputFileStream << "      start_t: "<<allTracks[i].GetStartTime() <<std::endl;
@@ -156,7 +156,7 @@ void BAYAMLWriter::WriteCurves()
         
         for(int i=0;i<allCurves.size();++i)
         {
-            if(allCurves[i].IsValid())
+            if(allCurves[i].GetWriteStatus())
             {
                 outputFileStream << "    - time: "<<allCurves[i].GetTime() <<std::endl;
                 outputFileStream << "      start_f: "<<allCurves[i].GetStartFrequency() <<std::endl;
@@ -179,7 +179,7 @@ void BAYAMLWriter::WriteOthers()
         
         for(int i=0;i<allOthers.size();++i)
         {
-            if(allOthers[i].IsValid())
+            if(allOthers[i].GetWriteStatus())
             {
                 outputFileStream << "    - time: "<<allOthers[i].GetTime() <<std::endl;
                 outputFileStream << "      frequency: "<<allOthers[i].GetFrequency() <<std::endl;

@@ -26,22 +26,31 @@ class BACurve
         void SetStartFrequency(const double &startFrequency);
         void SetEndFrequency(const double &endFrequency);
 
-        bool IsValid();
+        void SetWriteStatus(const bool&);
+        bool GetWriteStatus();
+        void SetOpacity(const double &opacity);
 
     private:
         TLine curvedLine; //Straight Line: shows where beginning and end of curve is
         int acquisitionNumber;
+        bool writeStatus;
 
 };
 
 BACurve::BACurve(const double &x1, const double &y1, const double &x2, const double &y2, const int &acqNumber): 
     curvedLine(TLine(x1,y1,x2,y2)), 
+    writeStatus(true),
     acquisitionNumber(acqNumber)
 {
    curvedLine.SetLineWidth(1);
    curvedLine.SetLineColorAlpha(6, 0.5);
 
    return;
+}
+
+void BACurve::SetOpacity(const double &opacity)
+{
+    curvedLine.SetLineColorAlpha(6,opacity);
 }
 
 void BACurve::SetAcquisitionNumber(const int &acqNumber)
@@ -90,9 +99,14 @@ double BACurve::GetEndFrequency()
     return curvedLine.GetY2();
 }
 
-bool BACurve::IsValid()
+bool BACurve::GetWriteStatus()
 {
-    return ((curvedLine.GetX1() > 0) || (curvedLine.GetX2()>0));
+    return writeStatus;
+}
+
+void BACurve::SetWriteStatus(const bool &s)
+{
+    writeStatus = s;
 }
 
 #endif /* BACURVE_HH_ */
