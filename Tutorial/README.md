@@ -8,7 +8,7 @@ bulletAnt is a graphical user interface aimed at assisting users in handscanning
   ```
  To first start an interactive seesion of ROOT.
   ```
-  root [0]  .L /path/to/bulletAnt/HandScanAssistant.C
+  root [0]  .L /path/to/bulletAnt/HandScanAssistant.cc
   root [1]  HandScanAssistant("/path/to/spectrograms_rid00000XXXX_000000YYY_to_000000ZZZ.root")
   ```
  Where the argument in the second command is the path to the root file you downloaded from DIRAC, on your local file system, in quotations.
@@ -24,16 +24,16 @@ bulletAnt is a graphical user interface aimed at assisting users in handscanning
 ![bulletAnt GUI](https://github.com/project8/bulletAnt/blob/master/Tutorial/bulletAntInterface.png?raw=true "bulletAnt Graphical User Interface")
 
 **Create Track:**
-Creates a white line segment in the center of your window. Drag and drop the position of the line with the underlying electron track. 
+Creates a red line segment in the center of your window. Drag and drop the position of the line with the underlying electron track. 
 If the track is curved or a sideband, click one or both of the the checkboxes underneath this button. Note that these buttons apply only to
 the most recent track, and cannot access older tracks. 
 
 **Create Curve:**
- Creates a red line segment, that should be specifically placed around curves, which you believe are part of the carrier (and are not sidebands). Try to estimate
+ Creates a magenta line segment, that should be specifically placed around curves, which you believe are part of the carrier (and are not sidebands). Try to estimate
 the start and end of the curving if it is difficult.
 
 **Other Feature:**
- Will produce a white dot that can be moved to signify if there is anything unusual in the spectrogram. A popup dialog will ask you for a brief comment on the feature,
+ Will produce a red dot that can be moved to signify if there is anything unusual in the spectrogram. A popup dialog will ask you for a brief comment on the feature,
 which will be logged in the output file. If you need to delete an object (track, curve, or other feature), move it entirely to the left of the spectrogram (where time is negative). 
 If it a line object, make sure to move both ends to t < 0.
 

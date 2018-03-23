@@ -787,13 +787,20 @@ void BAMainFrame::SetupHistogramVector()
     }
 
     //Assumes the range of all histograms is the same
-    TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
+    TObject *fileObject  = spectrogramFile->Get(currentHistogramName.c_str());
 
     if (fileObject->InheritsFrom("TH2"))
+    {
         currentSpectrogram->SetDataSparsity(false);
-
+    }
     else if (fileObject->InheritsFrom("TGraph"))
+    {
         currentSpectrogram->SetDataSparsity(true);
+    }
+    else if (fileObject->InheritsFrom("TTree"))
+    {
+        currentSpectrogram->SetDataSparsity(true);
+    }
 
     currentSpectrogram->SetData(fileObject);
     

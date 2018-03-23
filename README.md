@@ -5,7 +5,7 @@ bulletAnt is a graphical user interface for the hand-scanning of waterfall plots
 
 Dependencies
 ------------
- - ROOT (https://root.cern.ch/) (6.x should work)
+ - ROOT (https://root.cern.ch/) (6.0 or better)
 
 Instructions for Use
 --------------------
@@ -17,7 +17,7 @@ Instructions for Use
   ```
  To first start an interactive seesion of ROOT.
   ```
-  root [0]  .L HandScanAssistant.C
+  root [0]  .L HandScanAssistant.cc
   root [1]  HandScanAssistant("/path/to/spectrograms_rid00000XXXX_000000YYY_to_000000ZZZ.root")
   ```
  Where the argument is the path to the root file you downloaded from DIRAC, on your local file system, in quotations.
