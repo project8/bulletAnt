@@ -43,6 +43,11 @@ void BATreeReader::ReadTracks()
     
     TFile *f = new TFile(fileName.c_str());
     TTree *t1 = (TTree*)f->Get("multiTrackEvents");
+    if(!t1)
+    {
+        cout<<"ROOT File does not have correct type of tree. Exiting application..."<<endl;
+        exit(1);
+    }
 
     double fStartFrequency;
     double fEndFrequency;
