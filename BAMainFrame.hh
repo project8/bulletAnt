@@ -92,6 +92,7 @@ class BAMainFrame : public TGMainFrame
         int acquisitionIndex;
 
         double xRange[2], yRange[2], zRange[2];
+        bool isTreeData;
 
         std::vector<std::string> histogramNames;
 
@@ -107,6 +108,7 @@ class BAMainFrame : public TGMainFrame
 BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t windowWidth, UInt_t windowHeight) : 
     TGMainFrame(p, windowWidth, windowHeight), 
     acquisitionIndex(0), 
+    isTreeData(false),
     spectrogramFilename(inputFilename)
 {
 
@@ -173,7 +175,12 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     progressBar->ShowPosition();
     leftButtonFrame->AddFrame(progressBar, new TGLayoutHints(kLHintsExpandX | kLHintsCenterY, 15,15,3,4));
     progressBar->SetBarColor("green");
-    progressBar->SetRange(0,histogramNames.size());
+
+    if(isTreeData)
+        progressBar->SetRange(0,1);
+    else
+        progressBar->SetRange(0,histogramNames.size() );
+
     progressBar->Increment(1);
 
     TGTextButton *createTrackButton = new TGTextButton(leftButtonFrame,"&Create Track");
@@ -605,9 +612,12 @@ void BAMainFrame::SetWriteStatus()
 
 void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canvas depending on the acquisitionIndex
 {
-    std::string currentHistogramName = histogramNames[acquisitionIndex];
-    TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
-    currentSpectrogram->SetData(fileObject);
+    if(!isTreeData)
+    {
+        std::string currentHistogramName = histogramNames[acquisitionIndex];
+        TObject *fileObject  = fileObject = spectrogramFile->Get(currentHistogramName.c_str());
+        currentSpectrogram->SetData(fileObject);
+    }
 
     currentSpectrogram->Draw();
     currentSpectrogram->SetTitle(histogramNames[acquisitionIndex].c_str());
@@ -623,6 +633,8 @@ void BAMainFrame::DrawCurrentSpectrogram() //Draws spectrogram in righthand canv
 
 void BAMainFrame::DrawNextSpectrogram()
 {
+    if(isTreeData) return;
+
     if(acquisitionIndex < histogramNames.size() - 1) //If we are not out of range
     {
         ++acquisitionIndex;
@@ -642,6 +654,8 @@ void BAMainFrame::DrawNextSpectrogram()
 
 void BAMainFrame::DrawPreviousSpectrogram()
 {
+    if(isTreeData) return;
+
     if(acquisitionIndex!=0)
     {
         --acquisitionIndex;
@@ -791,18 +805,25 @@ void BAMainFrame::SetupHistogramVector()
 
     if (fileObject->InheritsFrom("TH2"))
     {
+        TH2D *rawSpectrogram  = (TH2D*) fileObject;
         currentSpectrogram->SetDataSparsity(false);
+        isTreeData = false;
+        currentSpectrogram->SetData(rawSpectrogram);
     }
     else if (fileObject->InheritsFrom("TGraph"))
     {
+        TGraph *sparseSpectrogram  = (TGraph*) fileObject;
         currentSpectrogram->SetDataSparsity(true);
+        isTreeData = false;
+        currentSpectrogram->SetData(sparseSpectrogram);
     }
     else if (fileObject->InheritsFrom("TTree"))
     {
+        TTree *sparseSpectrogramTree = (TTree*)spectrogramFile->Get("discPoints1D");
         currentSpectrogram->SetDataSparsity(true);
+        isTreeData = true;
+        currentSpectrogram->SetData(sparseSpectrogramTree);
     }
-
-    currentSpectrogram->SetData(fileObject);
     
     xRange[0] = currentSpectrogram->GetXaxis()->GetXmin();
     xRange[1] = currentSpectrogram->GetXaxis()->GetXmax();

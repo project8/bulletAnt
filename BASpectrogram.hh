@@ -14,7 +14,12 @@ class BASpectrogram
     public:
         BASpectrogram();
         ~BASpectrogram();
+
         void SetData(const TObject* inputData);
+        void SetData(const TGraph* inputData);
+        void SetData(const TH2D* inputData);
+        void SetData(TTree* inputData);
+
         void SetUserSparsity(const bool &status);
         void SetDataSparsity(const bool &status);
 
@@ -37,7 +42,7 @@ class BASpectrogram
         bool drawSparse; //true if either of two is true
 
         void SetSparsity();
-        TGraph* GetSparseSpectrogram(const TObject* inputData);
+        TGraph* GetSparseSpectrogram(TTree* inputData);
 
         TGraph *currentGraph;
         TH2D *currentHistogram;
@@ -133,9 +138,8 @@ bool BASpectrogram::GetSparsity()
     return drawSparse;
 }
 
-TGraph* BASpectrogram::GetSparseSpectrogram(const TObject* inputData)
+TGraph* BASpectrogram::GetSparseSpectrogram(TTree* sparseTree) 
 {
-    TTree *sparseTree = (TTree*) inputData;
     const int nEntries = sparseTree->GetEntries();
     TGraph *sparseSpectrogram = new TGraph(nEntries);
     double time, frequency;
@@ -153,18 +157,24 @@ TGraph* BASpectrogram::GetSparseSpectrogram(const TObject* inputData)
 
 void BASpectrogram::SetData(const TObject* inputData)
 {
-    if (inputData->InheritsFrom("TTree"))
-    {
-        currentGraph = GetSparseSpectrogram(inputData);
-    }
-    else if(dataSparse)
-    {
+    if(drawSparse)
         currentGraph = (TGraph*) inputData;
-    }
     else
-    {
         currentHistogram = (TH2D*) inputData;
-    }
+}
+
+void BASpectrogram::SetData(const TGraph* inputData)
+{
+        currentGraph = (TGraph*) inputData;
+}
+void BASpectrogram::SetData(const TH2D* inputData)
+{
+        currentHistogram = (TH2D*) inputData;
+}
+
+void BASpectrogram::SetData(TTree* inputData)
+{
+        currentGraph = GetSparseSpectrogram(inputData);
 }
 
 //Converts histogram ro one where only sufficiently high power bins are plotted as points on graph
