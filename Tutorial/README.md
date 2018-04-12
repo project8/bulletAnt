@@ -6,7 +6,7 @@ bulletAnt is a graphical user interface aimed at assisting users in handscanning
   ```
   $  root
   ```
- To first start an interactive seesion of ROOT.
+ To first start an interactive session of ROOT.
   ```
   root [0]  .L /path/to/bulletAnt/HandScanAssistant.cc
   root [1]  HandScanAssistant("/path/to/spectrograms_rid00000XXXX_000000YYY_to_000000ZZZ.root")
@@ -25,7 +25,7 @@ bulletAnt is a graphical user interface aimed at assisting users in handscanning
 
 **Create Track:**
 Creates a red line segment in the center of your window. Drag and drop the position of the line with the underlying electron track. 
-If the track is curved or a sideband, click one or both of the the checkboxes underneath this button. Note that these buttons apply only to
+If the track is curved or a sideband, click one or both of the checkboxes underneath this button. Note that these buttons apply only to
 the most recent track, and cannot access older tracks. 
 
 **Create Curve:**
@@ -39,7 +39,7 @@ If it a line object, make sure to move both ends to t < 0.
 
 **Write To YAML:**
  This button writes the tracks, curves, and other features to a YAML file in the same directory as your .root data files. A popup dialog will ask you for your name, in an attempt to
-autogenerate the correct filename for DIRAC, as well as the metadata. Once you have written, plase fill out the metadata "spectrogram_file" entry with the path on DIRAC. 
+autogenerate the correct filename for DIRAC, as well as the metadata. Once you have written, please fill out the metadata "spectrogram_file" entry with the path on DIRAC. 
 
 **Load From YAML:**
  This button lets you load in the tracks, curves, and other features from a YAML file, into the bulletAnt environment. This offers a convenient way to save your progress: just press the
@@ -49,7 +49,7 @@ autogenerate the correct filename for DIRAC, as well as the metadata. Once you h
  Redraws plot, zooms in to lower left hand corner.
 
 **Sliders:**
- Three ouble sliders, for the X,Y, and Z axes, respectively. Grabbing the center of the slider button and dragging will slide your focus along the axis. If you grab the
+ Three double sliders, for the X,Y, and Z axes, respectively. Grabbing the center of the slider button and dragging will slide your focus along the axis. If you grab the
  edge of the slider button and drag, you can zoom in or out. By default, the spectrogram is zoomed in as a) operations are quicker on zoomed-in plots, as there is less data, and
  b) when you create tracks, try to really zoom in to get the best accuracy you can
 
@@ -70,8 +70,8 @@ Meant to limit the amount of time you spend moving the mouse. Highly recommended
  d : Scroll right  
   
  r : Refresh plot  
- n : Go the the previous spectrogram  
- p : Go the the next spectrogram  
+ n : Go to the previous spectrogram  
+ p : Go to the next spectrogram  
    
  z : Zoom in  
  c : Zoom out  
