@@ -9,6 +9,7 @@
 #define BAYAMLWRITER_HH_
 
 #include "BATrack.hh"
+#include "BAEvent.hh"
 #include "BACurve.hh"
 #include "BAOther.hh"
 #include <iostream>
@@ -19,13 +20,14 @@ class BAYAMLWriter
 {
 
     public:
-        BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName);
+        BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BAEvent> &e, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName);
 
         void Write();
 
 
     private:
         std::vector<BATrack> allTracks;
+        std::vector<BAEvent> allEvents;
         std::vector<BACurve> allCurves;
         std::vector<BAOther> allOthers;
         std::string inputFilename;
@@ -37,6 +39,7 @@ class BAYAMLWriter
 
         void WriteMetadata();
         void WriteTracks();
+        void WriteEvents();
         void WriteCurves();
         void WriteOthers();
 
@@ -44,8 +47,9 @@ class BAYAMLWriter
         void GetOutputFilename();
         void GetRunID();
 };
-BAYAMLWriter::BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName): 
+BAYAMLWriter::BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BAEvent> &e, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName): 
         allTracks(t), 
+        allEvents(e), 
         allCurves(c), 
         allOthers(o), 
         inputFilename(inFilename),
@@ -99,6 +103,7 @@ void BAYAMLWriter::Write()
 
     WriteMetadata();
     WriteTracks();
+    WriteEvents();
     WriteCurves();
     WriteOthers();
 }
@@ -138,6 +143,29 @@ void BAYAMLWriter::WriteTracks()
                 if(allTracks[i].GetCurvedStatus())
                     outputFileStream << "      curved: "<< std::boolalpha << allTracks[i].GetCurvedStatus() <<std::endl;  
                 outputFileStream << "      acquisition_number: "<<allTracks[i].GetAcquisitionNumber() <<std::endl<<std::endl;
+            }
+        }
+        outputFileStream.close();
+    }
+}
+
+void BAYAMLWriter::WriteEvents()
+{
+    if(!allEvents.empty())
+    {
+        std::ofstream outputFileStream;
+        outputFileStream.open(outputFilename, std::ofstream::app);
+        outputFileStream << "events:" <<std::endl;
+        
+        for(int i=0;i<allEvents.size();++i)
+        {
+            if(allEvents[i].GetWriteStatus())
+            {
+                outputFileStream << "    - start_f: "<<allEvents[i].GetStartFrequency() <<std::endl;
+                outputFileStream << "      start_t: "<<allEvents[i].GetStartTime() <<std::endl;
+                outputFileStream << "      end_f: "<<allEvents[i].GetEndFrequency() <<std::endl;
+                outputFileStream << "      end_t: "<<allEvents[i].GetEndTime() <<std::endl;
+                outputFileStream << "      acquisition_number: "<<allEvents[i].GetAcquisitionNumber() <<std::endl<<std::endl;
             }
         }
         outputFileStream.close();

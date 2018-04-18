@@ -31,6 +31,7 @@ class BAMainFrame : public TGMainFrame
         virtual ~BAMainFrame();
 
         void CreateTrack();
+        void CreateEvent();
         void CreateCurve();
         void CreateOther();
 
@@ -72,6 +73,7 @@ class BAMainFrame : public TGMainFrame
         TRootEmbeddedCanvas *fEmbeddedCanvas;
 
         std::vector<BATrack> allTracks;
+        std::vector<BAEvent> allEvents;
         std::vector<BACurve> allCurves;
         std::vector<BAOther> allOthers;
 
@@ -199,6 +201,11 @@ BAMainFrame::BAMainFrame(const TGWindow *p, std::string inputFilename, UInt_t wi
     curvedButton->Connect("Clicked()","BAMainFrame",this,"CurvedBoolButton()");
     leftButtonFrame->AddFrame(curvedButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 1,1,1,1));
     curvedButton->SetState(kButtonDisabled);
+
+    TGTextButton *createEventButton = new TGTextButton(leftButtonFrame,"&Create Event");
+    createEventButton->Connect("Clicked()","BAMainFrame",this,"CreateEvent()");
+    leftButtonFrame->AddFrame(createEventButton, new TGLayoutHints(kLHintsCenterX | kLHintsTop, 5,5,3,4));
+    createEventButton->SetToolTipText("Create a new event to get start and end times");
 
     TGTextButton *createCurveButton = new TGTextButton(leftButtonFrame,"&Create Curve");
     createCurveButton->Connect("Clicked()","BAMainFrame",this,"CreateCurve()");
@@ -351,6 +358,9 @@ void BAMainFrame::SetOpacity(int alpha)
     for(int i=0;i<allTracks.size();++i)
         allTracks[i].SetOpacity(effectiveOpacity);
 
+    for(int i=0;i<allEvents.size();++i)
+        allEvents[i].SetOpacity(effectiveOpacity);
+
     for(int i=0;i<allCurves.size();++i)
         allCurves[i].SetOpacity(effectiveOpacity);
 
@@ -429,6 +439,20 @@ BAMainFrame::~BAMainFrame()
    Cleanup();
 }
 
+void BAMainFrame::CreateEvent()
+{
+    // Draws function graphics in randomly chosen interval
+    double xAxisInterval[2] = {horizontalXSlider->GetMinPosition(), horizontalXSlider->GetMaxPosition()};
+    double yAxisInterval[2] = {horizontalYSlider->GetMinPosition(), horizontalYSlider->GetMaxPosition()};
+    double xAxisLength = xAxisInterval[1] - xAxisInterval[0];
+    double yAxisLength = yAxisInterval[1] - yAxisInterval[0];
+    double xLinePosition[2] = { xAxisInterval[0] + 0.25 * xAxisLength, xAxisInterval[0] + 0.75 * xAxisLength};
+    double yLinePosition[2] = { yAxisInterval[0] + 0.25 * yAxisLength, yAxisInterval[0] + 0.75 * yAxisLength};
+
+    allEvents.push_back(BAEvent(xLinePosition[0], yLinePosition[0], xLinePosition[1], yLinePosition[1], acquisitionIndex ));
+
+    DrawAll();
+}
 
 void BAMainFrame::CreateTrack()
 {
@@ -526,7 +550,7 @@ void BAMainFrame::WriteToYAML()
 
     if(!scannerName.empty())
     {
-        BAYAMLWriter writeYAML(allTracks,allCurves,allOthers, spectrogramFilename, scannerName);
+        BAYAMLWriter writeYAML(allTracks, allEvents, allCurves,allOthers, spectrogramFilename, scannerName);
         writeYAML.Write();
     }
 
@@ -534,28 +558,28 @@ void BAMainFrame::WriteToYAML()
 
 void BAMainFrame::LoadFromYAML()
 {
-    const char *fileCharacters = LoadFileDialog();
-    if(fileCharacters)
-    {
-        std::string loadingFilename = fileCharacters;
-        if (loadingFilename.find(".yaml") != std::string::npos)
-        {
-            BAYAMLReader yamlReader(loadingFilename);
-            yamlReader.Read();
+    //const char *fileCharacters = LoadFileDialog();
+    //if(fileCharacters)
+    //{
+    //    std::string loadingFilename = fileCharacters;
+    //    if (loadingFilename.find(".yaml") != std::string::npos)
+    //    {
+    //        BAYAMLReader yamlReader(loadingFilename);
+    //        yamlReader.Read();
 
-            allTracks = yamlReader.GetTracks();
-            allCurves = yamlReader.GetCurves(); 
-            allOthers = yamlReader.GetOthers();
-        }
-        else if (loadingFilename.find(".root") != std::string::npos)
-        {
-            BATreeReader treeReader(loadingFilename);
-            treeReader.Read();
-            allTracks = treeReader.GetTracks();
-        }
+    //        allTracks = yamlReader.GetTracks();
+    //        allCurves = yamlReader.GetCurves(); 
+    //        allOthers = yamlReader.GetOthers();
+    //    }
+    //    else if (loadingFilename.find(".root") != std::string::npos)
+    //    {
+    //        BATreeReader treeReader(loadingFilename);
+    //        treeReader.Read();
+    //        allTracks = treeReader.GetTracks();
+    //    }
 
-        DrawCurrentSpectrogram();
-    }
+    //    DrawCurrentSpectrogram();
+    //}
 }
 
 void BAMainFrame::DoSlider()
@@ -596,6 +620,12 @@ void BAMainFrame::SetWriteStatus()
     {
         if(allTracks[i].GetStartTime() < xRange[0] && allTracks[i].GetEndTime() < xRange[0] && allTracks[i].GetAcquisitionNumber() == acquisitionIndex )
             allTracks[i].SetWriteStatus(false);
+    }
+
+    for(int i=0;i<allEvents.size();++i)
+    {
+        if(allEvents[i].GetStartTime() < xRange[0] && allEvents[i].GetEndTime() < xRange[0] && allEvents[i].GetAcquisitionNumber() == acquisitionIndex )
+            allEvents[i].SetWriteStatus(false);
     }
 
     for(int i=0;i<allCurves.size();++i)
@@ -845,6 +875,15 @@ void BAMainFrame::DrawAll()
             allTracks[i].Draw();
         }
     }
+
+    for(int i=0;i<allEvents.size();++i)
+    {
+        if(allEvents[i].GetAcquisitionNumber() == acquisitionIndex)
+        {
+            allEvents[i].Draw();
+        }
+    }
+
 
     for(int i=0;i<allCurves.size();++i)
     {
