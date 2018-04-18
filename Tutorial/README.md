@@ -28,6 +28,10 @@ Creates a red line segment in the center of your window. Drag and drop the posit
 If the track is curved or a sideband, click one or both of the checkboxes underneath this button. Note that these buttons apply only to
 the most recent track, and cannot access older tracks. 
 
+**Create Event:**
+Creates a green line segment in the center of your window. Similar functionality to the Track object, without the additional sideband/ curved flags. In this study, we want you to create
+a new event object from the start time to the end time of an individual electron, in order for us to calibrate the triggering. It is possible, though rare, that multiple electrons can occur at the same time, in which case the event lines you draw may overlap. Events consist of all tracks associated with the same electron.
+
 **Create Curve:**
  Creates a magenta line segment, that should be specifically placed around curves, which you believe are part of the carrier (and are not sidebands). Try to estimate
 the start and end of the curving if it is difficult.
