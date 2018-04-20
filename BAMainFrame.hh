@@ -558,28 +558,29 @@ void BAMainFrame::WriteToYAML()
 
 void BAMainFrame::LoadFromYAML()
 {
-    //const char *fileCharacters = LoadFileDialog();
-    //if(fileCharacters)
-    //{
-    //    std::string loadingFilename = fileCharacters;
-    //    if (loadingFilename.find(".yaml") != std::string::npos)
-    //    {
-    //        BAYAMLReader yamlReader(loadingFilename);
-    //        yamlReader.Read();
+    const char *fileCharacters = LoadFileDialog();
+    if(fileCharacters)
+    {
+        std::string loadingFilename = fileCharacters;
+        if (loadingFilename.find(".yaml") != std::string::npos)
+        {
+            BAYAMLReader yamlReader(loadingFilename);
+            yamlReader.Read();
 
-    //        allTracks = yamlReader.GetTracks();
-    //        allCurves = yamlReader.GetCurves(); 
-    //        allOthers = yamlReader.GetOthers();
-    //    }
-    //    else if (loadingFilename.find(".root") != std::string::npos)
-    //    {
-    //        BATreeReader treeReader(loadingFilename);
-    //        treeReader.Read();
-    //        allTracks = treeReader.GetTracks();
-    //    }
+            allTracks = yamlReader.GetTracks();
+            allEvents = yamlReader.GetEvents();
+            allCurves = yamlReader.GetCurves(); 
+            allOthers = yamlReader.GetOthers();
+        }
+        else if (loadingFilename.find(".root") != std::string::npos)
+        {
+            BATreeReader treeReader(loadingFilename);
+            treeReader.Read();
+            allTracks = treeReader.GetTracks();
+        }
 
-    //    DrawCurrentSpectrogram();
-    //}
+        DrawCurrentSpectrogram();
+    }
 }
 
 void BAMainFrame::DoSlider()
