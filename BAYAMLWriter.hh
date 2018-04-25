@@ -127,6 +127,7 @@ void BAYAMLWriter::WriteTracks()
     if(!allTracks.empty())
     {
         std::ofstream outputFileStream;
+        outputFileStream << fixed << std::setprecision(11);
         outputFileStream.open(outputFilename, std::ofstream::app);
         outputFileStream << "tracks:" <<std::endl;
         
@@ -154,6 +155,7 @@ void BAYAMLWriter::WriteEvents()
     if(!allEvents.empty())
     {
         std::ofstream outputFileStream;
+        outputFileStream << fixed << std::setprecision(11);
         outputFileStream.open(outputFilename, std::ofstream::app);
         outputFileStream << "events:" <<std::endl;
         
@@ -178,6 +180,7 @@ void BAYAMLWriter::WriteCurves()
     if(!allCurves.empty())
     {
         std::ofstream outputFileStream;
+        outputFileStream << fixed << std::setprecision(11);
         outputFileStream.open(outputFilename, std::ofstream::app);
 
         outputFileStream << "curves:" <<std::endl;
@@ -202,6 +205,7 @@ void BAYAMLWriter::WriteOthers()
     if(!allOthers.empty())
     {
         std::ofstream outputFileStream;
+        outputFileStream << fixed << std::setprecision(11);
         outputFileStream.open(outputFilename, std::ofstream::app);
         outputFileStream << "other_features:" <<std::endl;
         
