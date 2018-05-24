@@ -42,7 +42,6 @@ class BAYAMLWriter
 
         std::string GetDate();
         void GetOutputFilename();
-        void GetRunID();
 };
 BAYAMLWriter::BAYAMLWriter(const std::vector<BATrack> &t, const std::vector<BACurve> &c, const std::vector<BAOther> &o, const std::string &inFilename, const std::string &sName): 
         allTracks(t), 
@@ -59,23 +58,24 @@ void BAYAMLWriter::GetOutputFilename()
 {
     //Change extension
     outputFilename = inputFilename;
-    const std::string rootExtension = ".root";
-    const std::string yamlExtension = std::string("_") + scannerName + ".yaml";
-    outputFilename = std::regex_replace( outputFilename , std::regex(rootExtension), yamlExtension );
 
-    const std::string spectrogramPrefix = "spectrograms_rid";
-    const std::string handscanPrefix = "handscan_tracks_rid";
-    outputFilename = std::regex_replace( outputFilename , std::regex(spectrogramPrefix), handscanPrefix );
-}
-
-void BAYAMLWriter::GetRunID()
-{
-    std::string sPrefix("spectrograms_rid");
-    int substringIndex[0];
-    substringIndex[0] = inputFilename.find(sPrefix) + sPrefix.size();
-    substringIndex[1] = inputFilename.find("_",substringIndex[0]+1);
-    runID = inputFilename.substr(substringIndex[0],substringIndex[1] - substringIndex[0]);
-
+    std::cout<<outputFilename<<std::endl;
+    std::regex spectrogramPrefix("rid00000([0-9]{4})(_[0-9]+)?\\.root");
+    std::smatch m;
+    regex_search(outputFilename, m, spectrogramPrefix);
+    if(m.size()!=3)
+    {
+        //Print default name
+        outputFilename = "handscan.yaml";
+    }
+    else
+    {
+        //Set RunID too
+        runID = m[1].str();
+        std::string fileIndex = m[2].str();
+        outputFilename = "handscan";
+        outputFilename += fileIndex + ".yaml";
+    }
 }
 
 std::string BAYAMLWriter::GetDate()
@@ -93,9 +93,7 @@ std::string BAYAMLWriter::GetDate()
 
 void BAYAMLWriter::Write()
 {
-    outputFilename = "handscan.yaml";
-    //GetOutputFilename();
-    //GetRunID();
+    GetOutputFilename();
 
     WriteMetadata();
     WriteTracks();
