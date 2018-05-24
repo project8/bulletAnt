@@ -64,10 +64,11 @@ void BAYAMLWriter::GetOutputFilename()
     outputFilename = inputFilename;
 
     std::cout<<outputFilename<<std::endl;
-    std::regex spectrogramPrefix("rid00000([0-9]{4})(_[0-9]+)?\\.root");
+    std::regex spectrogramPrefix("rid00000([0-9]{4})(_[0-9]+)?(_|\\.)");
     std::smatch m;
     regex_search(outputFilename, m, spectrogramPrefix);
-    if(m.size()!=3)
+
+    if(m.size()!=4)
     {
         //Print default name
         outputFilename = "handscan.yaml";
