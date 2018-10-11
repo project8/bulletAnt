@@ -21,6 +21,8 @@ bulletAnt is a graphical user interface aimed at assisting users in handscanning
  Once opened, a new window containing the GUI will pop up on your screen, with two button panels, on the bottom and on the left, as well as the spectrogram on the right. 
  Below is an image of the GUI.
 
+ NOTE: In `$ROOTSYS/etc/system.rootrc`,  change the flag `Canvas.ShowGuideLines` to `false`. This will remove the yellow guidelines that interfere with the correct placement of tracks.
+
 ![bulletAnt GUI](https://github.com/project8/bulletAnt/blob/master/Tutorial/bulletAntInterface.png?raw=true "bulletAnt Graphical User Interface")
 
 **Create Track:**
